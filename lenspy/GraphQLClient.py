@@ -3,9 +3,9 @@ from gql.transport.aiohttp import AIOHTTPTransport
 from graphql.type import GraphQLSchema
 import json
 
-with open('lenspy/schema.graphql','r', encoding = 'utf-16') as f:
+with open('lenspy/lens-api.schema.graphql','r', encoding = 'utf-16') as f:
     schema_str = f.read()
-    print(schema_str[0:10])
+    # print(schema_str)
 
 class GQLClient:
     def __init__(self,url="https://api-mumbai.lens.dev", token = None):
@@ -21,6 +21,6 @@ class GQLClient:
         self.client = Client(transport = transport, schema = schema_str)
         
     def execute_query(self,query):
-        print(query)
+        # print(query)
         # return response from server of query
-        return self.client.execute(query)
+        return self.client.execute(gql(query))
