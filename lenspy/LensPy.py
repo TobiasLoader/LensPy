@@ -4,7 +4,8 @@ from web3.auto import w3
 from eth_account.messages import encode_defunct
 
 class LensPy:
-	def __init__(self):
+	def __init__(self,url="https://api-mumbai.lens.dev"):
+		self.network_url = url
 		self.reset_client()
 		self.api = parse_callable_api_from_graphql('lenspy/lens-api.documents.graphql')
 		self.methods_info = {
@@ -34,7 +35,7 @@ class LensPy:
 		}
 	
 	def reset_client(self):
-		self.client = GQLClient()
+		self.client = GQLClient(self.network_url)
 		self.authorised = False
 	
 	def available_raw_api_calls(self):
