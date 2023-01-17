@@ -4,16 +4,24 @@ from web3.auto import w3
 from eth_account.messages import encode_defunct
 
 class LensPy:
-	def __init__(self):
+	def __init__(self,url="https://api-mumbai.lens.dev"):
+		self.network_url = url
 		self.reset_client()
 		self.api = parse_callable_api_from_graphql('lenspy/lens-api.documents.graphql')
 		self.methods_info = {
 			'reset_client()':'resets the GQLClient',
-			'raw_api_call(graphql_query,req_params_str)':'direct api call of query (note could be a mutation) with req_params_str as graphql string of requests',
+			'----- raw calls -----':'',
+			'raw_api_call(graphql_query,req_params_str)':'direct api call of graphql_query (from lens-api.documents.graphql) with req_params_str as string of requests',
+			'raw_graphql_query(graphql)':'entire graphql query/mutation as a string – write your own query – only for those who understand graphql queries & lens protocol docs',
+			'----- available calls -----':'',
 			'available_raw_api_calls()':'prints a list of all graphql queries accessible from the raw_api_call() method (see lens-api.documents.graphql file for specification)',
 			'available_methods(desc_bool)':'prints a list of all methods on the LensPy object (with descriptions if optional parameter \'desc_bool\' is True',
-			'login(wallet_public_address,wallet_private_address)':'login to lens with key pair',
+			'----- custom methods -----':'',
 			'get_profile_id(handle)':'get lens protocol profile id for a given handle name',
+			'login(wallet_public_address,wallet_private_address)':'login to lens with key pair',
+			'my_profiles(limit)':'fetches all data on profiles owned by public address used to login',
+			'my_profile_handles(limit)':'fetches handles of profiles owned by public address used to login',
+			'----- api calls -----':'',
 			'authenticate(address,signature)':'authenticate profile (used in login process)',
 			'add_reaction(profileId,reaction,publicationId)':'adds a reaction to given publication',
 			'broadcast(broadcastId,signature)':'relay transaction if not using a dispatcher',
@@ -34,24 +42,25 @@ class LensPy:
 		}
 	
 	def reset_client(self):
-		self.client = GQLClient()
+		self.client = GQLClient(self.network_url)
 		self.authorised = False
+		self.pub = None
 	
 	def available_raw_api_calls(self):
 		print('\nAVAILABLE RAW API CALLS')
-		print('---')
+		print('----------')
 		for api_call in self.api.keys():
 			print(api_call)
-		print('---\n')
+		print('----------\n')
 	
 	def available_methods(self,desc_bool=False):
 		print('\nAVAILABLE METHODS')
-		print('---')
+		print('----------')
 		for method,desc in self.methods_info.items():
 			print(method)
 			if desc_bool:
 				print('- '+desc+'\n')
-		print('---\n')
+		print('----------\n')
 	
 	# can use this method to call lesser used graphql queries
 	# supply query name and parameters as a string yourself
@@ -64,6 +73,18 @@ class LensPy:
 		return self.client.execute_query(graphql)
 	
 	## custom methods for commonly used tasks
+	
+	def get_profile_id(self,handle):
+		# get profile from handle name gql request
+		req_str = 'query: "{}",type: PROFILE,limit: 1'.format(handle)
+		get_profile_req = self.api['profiles'](req_str)
+		# execute query and save response
+		profile_res = self.client.execute_query(get_profile_req)
+		# return id of profile response
+		if len(profile_res['search']['items']):
+			return profile_res['search']['items'][0]['id']
+		else:
+			return -1
 
 	def login(self,wallet_public_address,wallet_private_address):
 		# if you login (either with this method or manually reproducing challenge/signature/authenticate/access token steps below),
@@ -91,18 +112,23 @@ class LensPy:
 		# provide client with correct access token
 		self.client = GQLClient(token = access_token)
 		self.authorised = True
+		self.pub = wallet_public_address
 	
-	def get_profile_id(self,handle):
-		# get profile from handle name gql request
-		req_str = 'query: "{}",type: PROFILE,limit: 1'.format(handle)
-		get_profile_req = self.api['SearchProfiles'](req_str)
-		# execute query and save response
-		profile_res = self.client.execute_query(get_profile_req)
-		# return id of profile response
-		if len(profile_res['search']['items']):
-			return profile_res['search']['items'][0]['id']
+	def my_profiles(self,limit=10):
+		if not self.authorised:
+			return 'Not Logged In'
 		else:
-			return -1
+			# get profile from handle name gql request
+			req_str = 'ownedBy: ["{}"],limit: {}'.format(self.pub,limit)
+			my_profiles_req = self.api['profiles'](req_str)
+			# execute query and save response
+			return self.client.execute_query(my_profiles_req)
+	
+	def my_profile_handles(self,limit=10):
+		if not self.authorised:
+			return 'Not Logged In'
+		else:
+			return list(map(lambda p: p['handle'],self.my_profiles(limit)['profiles']['items']))
 	
 	## directly from api
 	
@@ -146,6 +172,12 @@ class LensPy:
 		req_str = 'follow:[{profile: "'+profileId+'",followModule: null}]'
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		return self.client.execute_query(follow_profile_req)
+	
+	# 'follower_nft_owned_token_ids(address,profileId)':'',
+	# def follower_nft_owned_token_ids(self,address,profileId):
+	# 	req_str = 'address:"{}", profileId:"{}"'.format(address,profileId)
+	# 	follower_nft_owned_token_ids_req = self.api['followerNftOwnedTokenIds'](req_str)
+	# 	return self.client.execute_query(follower_nft_owned_token_ids_req)
 	
 	def followers(self,profileId,limit=10):
 		req_str = 'profileId:"{}", limit:"{}"'.format(profileId,limit)
