@@ -1,7 +1,8 @@
 from lenspy.GraphQLClient import GQLClient
 from lenspy.parse_graphql import parse_callable_api_from_graphql
 from web3.auto import w3
-from eth_account.messages import encode_defunct
+from eth_account.messages import encode_defunct, encode_structured_data
+import json
 
 class LensPy:
 	def __init__(self,url="https://api-mumbai.lens.dev"):
@@ -27,7 +28,8 @@ class LensPy:
 			'broadcast(broadcastId,signature)':'relay transaction if not using a dispatcher',
 			'challenge(address)':'request a challenge for authentification of \'address\' from Lens',
 			'create_profile(handle)':'creates a new lens protocol profile with given handle',
-			'follow(profileId)':'follows the profile with a given profileId (must be authenticated)',
+			'follow(profileId)':'returns typed data to allow you to follow a profile with a given profileId (must be authenticated)',
+			'follow_broadcast(profileId,private)':'follows and broadcasts the typed data (so that you are actually following)',
 			'followers(profileId,limit)':'returns list of followers of profileId',
 			'following(address,limit)':'returns list of those following address',
 			'is_followed_by_me(profileId)':'returns a Bool if profileId is followed by the user',
@@ -87,8 +89,26 @@ class LensPy:
 			return -1
 
 	def login(self,wallet_public_address,wallet_private_address):
-		# if you login (either with this method or manually reproducing challenge/signature/authenticate/access token steps below),
-		# then you can use mutation (write) gql queries as well as standard (read only) queries
+		## CAN ONLY USE THIS METHOD IF YOU HAVE ACCESS TO PRIVATE ADDRESS
+		
+		## You should NOT send users Private Addresses to your web server (flask/django etc.)
+		
+		## - For web app: 
+		##    - Either run LensPy client side (in browser eg. https://pyscript.net/)
+		##    - Or implement login in multiple stages (nb. client means web browser)
+		##       1. Client sends a request to Web Server to make a Challenge
+		##       2. Web server initiates a Challenge query using LensPy (uses Graphql)
+		##       3. Web server receives response and sends to Client the Challenge Text
+		##       4. Client signs the challenge text (with users private key) and sends to Web Server
+		##       5. Web Server uses signature to initiate an Authenticate mutation using LensPy
+		##       6. Web Server receives Access Token as response
+		##       7. Web Server can store Access Token associated with a Client session
+		
+		# Examples of implementing the steps above can be found in our web framework demos
+		
+		# Once logged in:
+		# You can perform mutation (write) gql queries as well as standard (read only) queries
+		
 		self.reset_client()
 		# create challenge request
 		req_str = "address:"+'"'+wallet_public_address+'"'
@@ -143,8 +163,9 @@ class LensPy:
 		return self.client.execute_query(add_reaction_req)
 	
 	def broadcast(self,broadcastId,signature):
-		req_str = 'broadcastId:"{}",signature: "{}"'.format(broadcastId,signature)
+		req_str = 'id:"{}",signature: "{}"'.format(broadcastId,signature)
 		broadcast_req = self.api['Broadcast'](req_str)
+		# print(broadcast_req)
 		return self.client.execute_query(broadcast_req)
 	
 	def challenge(self, address):
@@ -168,16 +189,58 @@ class LensPy:
 		return self.client.execute_query(default_profile_req)
 	
 	def follow(self,profileId):
-		# not working as is -- need to implement follow module + NFTs
+		# Returns follow typed data - this does not mean you follow the profile
+		# You must then Broadcast this typed data or use a dispatcher
 		req_str = 'follow:[{profile: "'+profileId+'",followModule: null}]'
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		return self.client.execute_query(follow_profile_req)
 	
-	# 'follower_nft_owned_token_ids(address,profileId)':'',
-	# def follower_nft_owned_token_ids(self,address,profileId):
-	# 	req_str = 'address:"{}", profileId:"{}"'.format(address,profileId)
-	# 	follower_nft_owned_token_ids_req = self.api['followerNftOwnedTokenIds'](req_str)
-	# 	return self.client.execute_query(follower_nft_owned_token_ids_req)
+	def follow_broadcast(self,profileId,wallet_private_address):
+		## Note not working atm: getting {'broadcast': {'reason': 'WRONG_WALLET_SIGNED'}}
+		# This is because the signature is not the same - see reasons below
+
+		req_str = 'follow:[{profile: "'+profileId+'",followModule: null}]'
+		follow_profile_req = self.api['createFollowTypedData'](req_str)
+		follow_profile_res = self.client.execute_query(follow_profile_req)
+		broadcast_id = follow_profile_res['createFollowTypedData']['id']
+		typed_data = follow_profile_res['createFollowTypedData']['typedData']
+		
+		# Issues below because encode_structured_data and sign_typed_data
+		# don't seem to behave in the same way as JS eth_signTypedData (which Lens was designed for)
+		
+		# typed data response from lens doesn't contain EIP712Domain types field
+		typed_data['types']['EIP712Domain'] = [
+			{"name":"name","type":"string"},
+			{"name":"version","type":"string"},
+			{"name":"chainId","type":"uint256"},
+			{"name":"verifyingContract","type":"address"}
+		]
+		# typed data response from lens doesn't contain primaryType
+		typed_data['primaryType'] = 'FollowWithSig'
+		# typed data response from lens doesn't contain message (written as value?)
+		typed_data['message'] = typed_data['value']
+		# encode_structured_data erroring on the types of profileIds and datas - so change to string[]
+		typed_data['types']['FollowWithSig'][0]['type'] = 'string[]'
+		typed_data['types']['FollowWithSig'][1]['type'] = 'string[]'
+		del typed_data['value']
+		
+		# BUT now if we sign the above typed_data of course it will be different!
+		
+		# for (a,b) in typed_data.items():
+		# 	print(a)
+		# 	print(b)
+		
+		encoded_data = encode_structured_data(primitive = typed_data)
+		
+		## Sign either using sign_message (uses private address)
+		signed_type_data = w3.eth.account.sign_message(encoded_data,wallet_private_address)
+		
+		## Or using sign_typed_data (which would be preferable - but errors on json.dumps)
+		# signed_type_data = w3.eth.sign_typed_data(self.pub,json.dumps(encoded_data))
+		
+		print(signed_type_data)
+
+		return self.broadcast(broadcast_id,signed_type_data.signature.hex())
 	
 	def followers(self,profileId,limit=10):
 		req_str = 'profileId:"{}", limit:"{}"'.format(profileId,limit)
