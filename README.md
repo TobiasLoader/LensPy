@@ -1,6 +1,10 @@
 # LensPy
 Python library for the Lens Protocol.
 
+Check out documentation on [readthedocs](https://lens-py.readthedocs.io/en/latest/#).
+
+---
+
 *-- WORK IN PROGRESS -- expected completion by Feb/March 2023*
 
 ---
