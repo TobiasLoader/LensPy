@@ -79,7 +79,7 @@ class LensPy:
 	def get_profile_id(self,handle):
 		# get profile from handle name gql request
 		req_str = 'query: "{}",type: PROFILE,limit: 1'.format(handle)
-		get_profile_req = self.api['profiles'](req_str)
+		get_profile_req = self.api['SearchProfiles'](req_str)
 		# execute query and save response
 		profile_res = self.client.execute_query(get_profile_req)
 		# return id of profile response
@@ -209,38 +209,39 @@ class LensPy:
 		# don't seem to behave in the same way as JS eth_signTypedData (which Lens was designed for)
 		
 		# typed data response from lens doesn't contain EIP712Domain types field
-		typed_data['types']['EIP712Domain'] = [
-			{"name":"name","type":"string"},
-			{"name":"version","type":"string"},
-			{"name":"chainId","type":"uint256"},
-			{"name":"verifyingContract","type":"address"}
-		]
-		# typed data response from lens doesn't contain primaryType
-		typed_data['primaryType'] = 'FollowWithSig'
-		# typed data response from lens doesn't contain message (written as value?)
-		typed_data['message'] = typed_data['value']
-		# encode_structured_data erroring on the types of profileIds and datas - so change to string[]
-		typed_data['types']['FollowWithSig'][0]['type'] = 'string[]'
-		typed_data['types']['FollowWithSig'][1]['type'] = 'string[]'
-		del typed_data['value']
-		
-		# BUT now if we sign the above typed_data of course it will be different!
-		
-		# for (a,b) in typed_data.items():
-		# 	print(a)
-		# 	print(b)
-		
-		encoded_data = encode_structured_data(primitive = typed_data)
-		
-		## Sign either using sign_message (uses private address)
-		signed_type_data = w3.eth.account.sign_message(encoded_data,wallet_private_address)
-		
-		## Or using sign_typed_data (which would be preferable - but errors on json.dumps)
-		# signed_type_data = w3.eth.sign_typed_data(self.pub,json.dumps(encoded_data))
-		
-		print(signed_type_data)
-
-		return self.broadcast(broadcast_id,signed_type_data.signature.hex())
+# 		typed_data['types']['EIP712Domain'] = [
+# 			{"name":"name","type":"string"},
+# 			{"name":"version","type":"string"},
+# 			{"name":"chainId","type":"uint256"},
+# 			{"name":"verifyingContract","type":"address"}
+# 		]
+# 		# typed data response from lens doesn't contain primaryType
+# 		typed_data['primaryType'] = 'FollowWithSig'
+# 		# typed data response from lens doesn't contain message (written as value?)
+# 		typed_data['message'] = typed_data['value']
+# 		# encode_structured_data erroring on the types of profileIds and datas - so change to string[]
+# 		typed_data['types']['FollowWithSig'][0]['type'] = 'string[]'
+# 		typed_data['types']['FollowWithSig'][1]['type'] = 'string[]'
+# 		del typed_data['value']
+# 		
+# 		# BUT now if we sign the above typed_data of course it will be different!
+# 		
+# 		# for (a,b) in typed_data.items():
+# 		# 	print(a)
+# 		# 	print(b)
+# 		
+# 		encoded_data = encode_structured_data(primitive = typed_data)
+# 		
+# 		## Sign either using sign_message (uses private address)
+# 		signed_type_data = w3.eth.account.sign_message(encoded_data,wallet_private_address)
+# 		
+# 		## Or using sign_typed_data (which would be preferable - but errors on json.dumps)
+# 		# signed_type_data = w3.eth.sign_typed_data(self.pub,json.dumps(encoded_data))
+# 		
+# 		print(signed_type_data)
+# 
+# 		return self.broadcast(broadcast_id,signed_type_data.signature.hex())
+		return '"follow_broadcast" function needs fixing.'
 	
 	def followers(self,profileId,limit=10):
 		req_str = 'profileId:"{}", limit:"{}"'.format(profileId,limit)
@@ -270,10 +271,12 @@ class LensPy:
 	
 	def profile_feed(self, profileId, limit=50):
 		# issue with query field 'isGated' on type 'Post'.
+		# graphql.error.graphql_error.GraphQLError: Cannot query field 'isGated' on type 'Post'.
 		req_str = 'profileId:"{}", limit:{}'.format(profileId,limit)
 		profile_feed_req = self.api['ProfileFeed'](req_str)
-		print(profile_feed_req)
-		return self.client.execute_query(profile_feed_req)
+		# print(profile_feed_req)
+		# return self.client.execute_query(profile_feed_req)
+		return '"profile_feed" needs fixing, when executing the query we get\n  graphql.error.graphql_error.GraphQLError: Cannot query field \'isGated\' on type \'Post\'.'
 		
 	def remove_reaction(self,profileId,reaction,publicationId):
 		req_str = 'profileId:"{}",reaction: "{}",publicationId: "{}"'.format(profileId,reaction,publicationId)
