@@ -6,7 +6,7 @@ __pycache__/
 bin/
 .DS_STORE
 /pyvenv.cfg
-
+dev_instructions.txt
 
 # C extensions
 *.so
