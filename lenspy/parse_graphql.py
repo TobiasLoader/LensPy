@@ -9,9 +9,11 @@ def parse_callable_api_from_graphql(graphql_docs_file='lenspy/lens-api.documents
 	fragments = {}
 	bracket = 0
 	bucket = []
+	# for debugging purposes - uncomment q and lines 25-26
+	# q = 'fragment MetadataOutputFields'
 	for c in documents_graphql:
 		if c not in ['\n']:
-			bucket += c
+			bucket.append(c)
 		if c == '{':
 			bracket += 1
 		elif c == '}':
@@ -20,6 +22,8 @@ def parse_callable_api_from_graphql(graphql_docs_file='lenspy/lens-api.documents
 				seperate_graphql.append(''.join(bucket))
 				bucket = []
 	for graphql_doc in seperate_graphql:
+		# if graphql_doc[0:len(q)]==q:
+		# 	print(graphql_doc)
 		type_graphql = graphql_doc.split(' ')[0]
 		api_raw_str[type_graphql].append(graphql_doc)
 	for type_graphql in ['mutation','query']:
@@ -32,6 +36,7 @@ def parse_callable_api_from_graphql(graphql_docs_file='lenspy/lens-api.documents
 	for frag in api_raw_str['fragment']:
 		func_name = frag.split(' ')[1]
 		fragments[func_name] = frag
+	# print(fragments['MetadataOutputFields'])
 	def add_required_fragments(current_x):
 		frags = []
 		done = False
@@ -63,3 +68,7 @@ def parse_callable_api_from_graphql(graphql_docs_file='lenspy/lens-api.documents
 		for fname,f in api_func[type_graphql].items():
 			api[fname] = f
 	return api
+
+def print_query_strings(api_query):
+	for c in api_query:
+		print(c,end='')

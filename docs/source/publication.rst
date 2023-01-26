@@ -1,0 +1,6 @@
+Publication
+==================================
+
+- post
+- comment
+- mirror

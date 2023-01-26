@@ -270,13 +270,9 @@ class LensPy:
 		return self.client.execute_query(ping_req)	
 	
 	def profile_feed(self, profileId, limit=50):
-		# issue with query field 'isGated' on type 'Post'.
-		# graphql.error.graphql_error.GraphQLError: Cannot query field 'isGated' on type 'Post'.
 		req_str = 'profileId:"{}", limit:{}'.format(profileId,limit)
 		profile_feed_req = self.api['ProfileFeed'](req_str)
-		# print(profile_feed_req)
-		# return self.client.execute_query(profile_feed_req)
-		return '"profile_feed" needs fixing, when executing the query we get\n  graphql.error.graphql_error.GraphQLError: Cannot query field \'isGated\' on type \'Post\'.'
+		return self.client.execute_query(profile_feed_req)
 		
 	def remove_reaction(self,profileId,reaction,publicationId):
 		req_str = 'profileId:"{}",reaction: "{}",publicationId: "{}"'.format(profileId,reaction,publicationId)
