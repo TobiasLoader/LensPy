@@ -1,3 +1,7 @@
-.sphinxsidebar {
+/* .sphinxsidebar {
 	border-right: rgb(220,220,220) 1px solid;
+} */
+
+.descname {
+	margin-right: 5px;
 }

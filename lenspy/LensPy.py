@@ -1,6 +1,6 @@
 from lenspy.GraphQLClient import GQLClient
 from lenspy.parse_graphql import parse_callable_api_from_graphql
-from lenspy.helpers import prettify_api_query_str, sign_typed_data
+from lenspy.helpers import prettify_api_query_str, sign_typed_data, null_param
 from web3.auto import w3
 from eth_account.messages import encode_defunct, encode_structured_data
 import json
@@ -30,8 +30,8 @@ class LensPy:
 			'broadcast(broadcastId,signature)':'relay transaction if not using a dispatcher',
 			'challenge(address)':'request a challenge for authentification of \'address\' from Lens',
 			'create_profile(handle)':'creates a new lens protocol profile with given handle',
-			'follow(profileId)':'returns typed data to allow you to follow a profile with a given profileId (must be authenticated)',
-			'follow_broadcast(profileId,private_key)':'follows and broadcasts the typed data (so that you are actually following)',
+			'follow(profileId,followModule)':'returns typed data to allow you to follow a profile with a given profileId (must be authenticated)',
+			'follow_broadcast(private_key,profileId,followModule)':'queries for then broadcasts follow typed data (so that you are actually following)',
 			'followers(profileId,limit)':'returns list of followers of profileId',
 			'following(address,limit)':'returns list of those following address',
 			'is_followed_by_me(profileId)':'returns a Bool if profileId is followed by the user',
@@ -178,12 +178,8 @@ class LensPy:
 		challenge_req = self.api['Challenge'](req_str)
 		return self.client.execute_query(challenge_req)
 	
-	def create_profile(self, handle, profilePictureUri = "null", followNFTURI = "null", followModule = "null"):
-		# TODO: allow null params
-		#  – shouldn't have double quotes for null but should for any other value.
-		
-		# create profile gql request
-		req_str = 'handle:"{}",profilePictureUri: null,followNFTURI: null,followModule: null'.format(handle,profilePictureUri,followNFTURI,followModule)
+	def create_profile(self, handle, profilePictureUri = None, followNFTURI = None, followModule = None):
+		req_str = 'handle:"{}",profilePictureUri: {},followNFTURI: {},followModule: {}'.format(handle,null_param(profilePictureUri),null_param(followNFTURI),null_param(followModule))
 		create_profile_req = self.api['CreateProfile'](req_str)
 		# execute the query to create a new profile & return
 		return self.client.execute_query(create_profile_req)
@@ -193,18 +189,19 @@ class LensPy:
 		default_profile_req = self.api['defaultProfile'](req_str)
 		return self.client.execute_query(default_profile_req)
 	
-	def follow(self,profileId):
+	def follow(self,profileId,followModule=None):
 		# Returns follow typed data - this does not mean you follow the profile
 		# You must then Broadcast this typed data or use a dispatcher
-		req_str = 'follow:[{profile: "'+profileId+'",followModule: null}]'
+		req_str = 'follow:[{profile: "'+profileId+'",followModule: '+null_param(followModule)+'}]'
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		return self.client.execute_query(follow_profile_req)
 	
-	def follow_broadcast(self,profileId,private_key):
+	def follow_broadcast(self,private_key,profileId,followModule=None):
 		## Note not working atm: getting {'broadcast': {'reason': 'WRONG_WALLET_SIGNED'}}
 		# This is because the signature is not the same - see reasons below
 
-		req_str = 'follow:[{profile: "'+profileId+'",followModule: null}]'
+		req_str = 'follow:[{profile: "'+profileId+'",followModule: '+null_param(followModule)+'}]'
+		print(req_str)
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		follow_profile_res = self.client.execute_query(follow_profile_req)
 		broadcast_id = follow_profile_res['createFollowTypedData']['id']
@@ -221,16 +218,21 @@ class LensPy:
 		# don't seem to behave in the same way as JS eth_signTypedData (which Lens was designed for)
 		
 		# typed data response from lens doesn't contain EIP712Domain types field
-# 		typed_data['types']['EIP712Domain'] = [
-# 			{"name":"name","type":"string"},
-# 			{"name":"version","type":"string"},
-# 			{"name":"chainId","type":"uint256"},
-# 			{"name":"verifyingContract","type":"address"}
-# 		]
+		typed_data['types']['EIP712Domain'] = [
+			{"name":"name","type":"string"},
+			{"name":"version","type":"string"},
+			{"name":"chainId","type":"uint256"},
+			{"name":"verifyingContract","type":"address"}
+		]
+		# required base types to pass hashing.py Depth First Search of types without throwing TypeErrors
+		typed_data['types']['uint'] = []
+		typed_data['types']['bytes'] = []
 # 		# typed data response from lens doesn't contain primaryType
-# 		typed_data['primaryType'] = 'FollowWithSig'
+		typed_data['primaryType'] = 'FollowWithSig'
 # 		# typed data response from lens doesn't contain message (written as value?)
-# 		typed_data['message'] = typed_data['value']
+		typed_data['message'] = typed_data['value']
+		# print(typed_data)
+
 # 		# encode_structured_data erroring on the types of profileIds and datas - so change to string[]
 # 		typed_data['types']['FollowWithSig'][0]['type'] = 'string[]'
 # 		typed_data['types']['FollowWithSig'][1]['type'] = 'string[]'
@@ -242,18 +244,19 @@ class LensPy:
 # 		# 	print(a)
 # 		# 	print(b)
 # 		
-# 		encoded_data = encode_structured_data(primitive = typed_data)
+		encoded_data = encode_structured_data(primitive = typed_data)
+		# print(encoded_data)
 # 		
 # 		## Sign either using sign_message (uses private address)
-# 		signed_type_data = w3.eth.account.sign_message(encoded_data,wallet_private_address)
+		signed_type_data = w3.eth.account.sign_message(encoded_data,private_key)
 # 		
-# 		## Or using sign_typed_data (which would be preferable - but errors on json.dumps)
-# 		# signed_type_data = w3.eth.sign_typed_data(self.pub,json.dumps(encoded_data))
+# 		## Or using sign_typed_data (not meant ot use with encode_structured_data actually, one for local the other for on node)
+		# signed_type_data = w3.eth.sign_typed_data(self.pub,json.dumps(encoded_data))
 # 		
-# 		print(signed_type_data)
+		# print(signed_type_data)
 # 
-# 		return self.broadcast(broadcast_id,signed_type_data.signature.hex())
-		return '"follow_broadcast" function needs fixing.'
+		return self.broadcast(broadcast_id,signed_type_data.signature.hex())
+		# return '"follow_broadcast" function needs fixing.'
 	
 	def followers(self,profileId,limit=10):
 		req_str = 'profileId:"{}", limit:"{}"'.format(profileId,limit)
@@ -279,6 +282,10 @@ class LensPy:
 	
 	def ping(self):
 		ping_req = self.api['ping']()
+		return self.client.execute_query(ping_req)	
+	
+	def post(self,profileId,contentURI,collectModule,referenceModule):
+		ping_req = self.api['CreatePostTypedData']()
 		return self.client.execute_query(ping_req)	
 	
 	def profile_feed(self, profileId, limit=50):
