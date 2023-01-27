@@ -1,5 +1,6 @@
 from lenspy.GraphQLClient import GQLClient
 from lenspy.parse_graphql import parse_callable_api_from_graphql
+from lenspy.helpers import prettify_api_query_str, sign_typed_data
 from web3.auto import w3
 from eth_account.messages import encode_defunct, encode_structured_data
 import json
@@ -12,10 +13,11 @@ class LensPy:
 		self.methods_info = {
 			'reset_client()':'resets the GQLClient',
 			'----- raw calls -----':'',
-			'raw_api_call(graphql_query,req_params_str)':'direct api call of graphql_query (from lens-api.documents.graphql) with req_params_str as string of requests',
-			'raw_graphql_query(graphql)':'entire graphql query/mutation as a string – write your own query – only for those who understand graphql queries & lens protocol docs',
+			'execute_raw_api_call(query_name,req_params_str)':'direct api call of query_name (from lens-api.documents.graphql) with req_params_str as string of requests',
+			'execute_raw_graphql_query(graphql)':'takes as input an entire graphql query/mutation as a string – write your own query – only for those who understand graphql queries & lens protocol docs',
+			'get_graphql_query_string(query_name)':'returns prettified graphql query string for a given query (including all necessary graphql `fragments`). Can take as input any from the list LensPy.available_raw_api_calls()',
 			'----- available calls -----':'',
-			'available_raw_api_calls()':'prints a list of all graphql queries accessible from the raw_api_call() method (see lens-api.documents.graphql file for specification)',
+			'available_raw_api_calls()':'prints a list of all graphql query names accessible from the raw_api_call() method (see lens-api.documents.graphql file for specification)',
 			'available_methods(desc_bool)':'prints a list of all methods on the LensPy object (with descriptions if optional parameter \'desc_bool\' is True',
 			'----- custom methods -----':'',
 			'get_profile_id(handle)':'get lens protocol profile id for a given handle name',
@@ -29,7 +31,7 @@ class LensPy:
 			'challenge(address)':'request a challenge for authentification of \'address\' from Lens',
 			'create_profile(handle)':'creates a new lens protocol profile with given handle',
 			'follow(profileId)':'returns typed data to allow you to follow a profile with a given profileId (must be authenticated)',
-			'follow_broadcast(profileId,private)':'follows and broadcasts the typed data (so that you are actually following)',
+			'follow_broadcast(profileId,private_key)':'follows and broadcasts the typed data (so that you are actually following)',
 			'followers(profileId,limit)':'returns list of followers of profileId',
 			'following(address,limit)':'returns list of those following address',
 			'is_followed_by_me(profileId)':'returns a Bool if profileId is followed by the user',
@@ -67,12 +69,15 @@ class LensPy:
 	# can use this method to call lesser used graphql queries
 	# supply query name and parameters as a string yourself
 	
-	def raw_api_call(self,graphql_query,req_params_str=None):
-		req = self.api[graphql_query](req_params_str)
+	def execute_raw_api_call(self,query_name,req_params_str=None):
+		req = self.api[query_name](req_params_str)
 		return self.client.execute_query(req)
 	
-	def raw_graphql_query(self,graphql):
+	def execute_raw_graphql_query(self,graphql):
 		return self.client.execute_query(graphql)
+	
+	def get_graphql_query_string(self,query_name):
+		return prettify_api_query_str(self.api[query_name]('X'))
 	
 	## custom methods for commonly used tasks
 	
@@ -195,7 +200,7 @@ class LensPy:
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		return self.client.execute_query(follow_profile_req)
 	
-	def follow_broadcast(self,profileId,wallet_private_address):
+	def follow_broadcast(self,profileId,private_key):
 		## Note not working atm: getting {'broadcast': {'reason': 'WRONG_WALLET_SIGNED'}}
 		# This is because the signature is not the same - see reasons below
 
@@ -204,6 +209,13 @@ class LensPy:
 		follow_profile_res = self.client.execute_query(follow_profile_req)
 		broadcast_id = follow_profile_res['createFollowTypedData']['id']
 		typed_data = follow_profile_res['createFollowTypedData']['typedData']
+		
+		# TODO implement sign_typed_data in helpers.py, then use:
+		
+		# signature = sign_typed_data(typed_data,private_key)
+		# return self.broadcast(broadcast_id,signature.hex())
+		
+		## ------ PREVIOUSLY ------
 		
 		# Issues below because encode_structured_data and sign_typed_data
 		# don't seem to behave in the same way as JS eth_signTypedData (which Lens was designed for)
