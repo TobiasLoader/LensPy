@@ -10,6 +10,9 @@ Python library for the *Lens Protocol*. Opening up web3 to Python developers.
 
 **WORK IN PROGRESS** expected completion by Feb/March 2023
 
+.. image:: /_static/img/lenspylogo.png
+   :alt: lens py logo
+
 Aims for this project:
 ----------------------------------
 
