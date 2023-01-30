@@ -10,6 +10,11 @@ Python library for the *Lens Protocol*. Opening up web3 to Python developers.
 
 **WORK IN PROGRESS** expected completion by Feb/March 2023
 
+See the Lens `Protocol documentation <https://docs.lens.xyz/docs>`_.
+
+.. image:: /_static/img/lenspylogo.png
+   :alt: lens py logo
+
 Aims for this project:
 ----------------------------------
 
@@ -21,10 +26,11 @@ Aims for this project:
    :maxdepth: 2
    :caption: Contents:
 
+   overview
    installation
    broadcast
    follow
    login
    profile
    publication
-   search
+   searches

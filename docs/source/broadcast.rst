@@ -1,7 +1,9 @@
 Broadcast
 ==================================
 
-Lens Protocol ensures the safety of the users by often requiring a two stage process (like when following a profile). Firstly the user must be logged in (see ``athentication``), then the user sends a graphql request for a typed data response. This is then signed by the user and sent before the request is accepted.
+See the Lens Protocol docs for `Login <https://docs.lens.xyz/docs/broadcast-transaction>`_.
+
+Lens Protocol ensures the safety of the users by often requiring a two stage process (like when following a profile). Firstly the user must be logged in (see ``athentication``), then the user sends a graphql request for a typed data response. This is then signed by the user and ``broadcast`` before the request is accepted.
 
 .. py:method:: broadcast(broadcastId,signature)
 
