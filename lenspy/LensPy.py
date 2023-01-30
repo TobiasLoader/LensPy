@@ -5,6 +5,13 @@ from web3.auto import w3
 from eth_account.messages import encode_defunct, encode_structured_data
 import json
 
+## PROFILE
+# sortCriteria = ['CREATED_ON','MOST_FOLLOWERS','LATEST_CREATED','MOST_POSTS','MOST_COMMENTS','MOST_MIRRORS','MOST_PUBLICATION','MOST_COLLECTS']
+
+## PUBLICATION
+# sortCriteria = ['TOP_COMMENTED','TOP_COLLECTED','TOP_MIRRORED','LATEST','CURATED_PROFILES']
+# types = ['POST', 'COMMENT', 'MIRROR']
+
 class LensPy:
 	def __init__(self,url="https://api-mumbai.lens.dev"):
 		self.network_url = url
@@ -29,15 +36,24 @@ class LensPy:
 			'add_reaction(profileId,reaction,publicationId)':'adds a reaction to given publication',
 			'broadcast(broadcastId,signature)':'relay transaction if not using a dispatcher',
 			'challenge(address)':'request a challenge for authentification of \'address\' from Lens',
+			'comment(profileId,publicationId,contentURI,collectModule,referenceModule)':'comment on a specific publication (can specify collect and reference modules)',
 			'create_profile(handle)':'creates a new lens protocol profile with given handle',
+			'default_profile(address)':'get an Ethereum address\'s default Lens profile (same address can have multiple profiles)',
+			'delete_profile(profileId)':'deletes the Lens profile with profileId',
+			'explore_profiles(sortCriteria)':'explore profiles by sort criteria',
+			'explore_publications(sortCriteria,publicationTypes,limit)':'explore publications by sort criteria given their type (post,mirror,comment)',
 			'follow(profileId,followModule)':'returns typed data to allow you to follow a profile with a given profileId (must be authenticated)',
 			'follow_broadcast(private_key,profileId,followModule)':'queries for then broadcasts follow typed data (so that you are actually following)',
 			'followers(profileId,limit)':'returns list of followers of profileId',
 			'following(address,limit)':'returns list of those following address',
+			'get_publication(publicationId)':'get a specific publication',
+			'get_publications(profileId,publicationTypes,limit)':'get publications of a specific type from a profile',
 			'is_followed_by_me(profileId)':'returns a Bool if profileId is followed by the user',
 			'is_following(followerProfileId,followedHandle)':'returns a Bool if followerProfileId is following followedHandle',
+			'mirror(profileId,publicationId,referenceModule)':'mirror a specific publication (can specify reference module)'
 			'ping()':'pings the lens protocol server to check for healthy connection',
 			'profile_feed(profileId, limit)':'returns #limit items of feed for profileId',
+			'recommended_profiles()':'returns a list of recommended profiles',
 			'remove_reaction(profileId,reaction,publicationId)':'remove the reaction from publication',
 			'report_publication(publicationId,reason,subreason,additionalComments)':'report - see reasons',
 			'search_profiles(handle,limit)':'searches profiles for a given handle (up to limit)',
@@ -160,7 +176,10 @@ class LensPy:
 	def authenticate(self, address, signature):
 		req_str = 'address: "{}",signature:"{}"'.format(address,signature)
 		auth_query = self.api['authenticate'](req_str)
-		return self.client.execute_query(auth_query)
+		auth_res = self.client.execute_query(auth_query)
+		access_token = auth_res['authenticate']['accessToken']
+		self.client = GQLClient(token = access_token)
+		return access_token
 	
 	def add_reaction(self,profileId,reaction,publicationId):
 		req_str = 'profileId:"{}",reaction: "{}",publicationId: "{}"'.format(profileId,reaction,publicationId)
@@ -177,6 +196,16 @@ class LensPy:
 		req_str = 'address:"{}"'.format(address)
 		challenge_req = self.api['Challenge'](req_str)
 		return self.client.execute_query(challenge_req)
+		
+	def comment(self,profileId,publicationId,contentURI,collectModule=None,referenceModule=None):
+		if collectModule==None:
+			collectModule = '{ revertCollectModule: true }'
+		if referenceModule==None:
+			referenceModule = '{ followerOnlyReferenceModule: false }'
+		req_str = 'profileId:"{}",publicationId:"{}",contentURI: "{}",collectModule: {},referenceModule: {}'.format(profileId,publicationId,contentURI,collectModule,referenceModule)
+		comment_req = self.api['createCommentTypedData'](req_str)
+		# print(prettify_api_query_str(post_req))
+		return self.client.execute_query(comment_req)
 	
 	def create_profile(self, handle, profilePictureUri = None, followNFTURI = None, followModule = None):
 		req_str = 'handle:"{}",profilePictureUri: {},followNFTURI: {},followModule: {}'.format(handle,null_param(profilePictureUri),null_param(followNFTURI),null_param(followModule))
@@ -188,6 +217,30 @@ class LensPy:
 		req_str = 'ethereumAddress:"{}"'.format(address)
 		default_profile_req = self.api['defaultProfile'](req_str)
 		return self.client.execute_query(default_profile_req)
+	
+	def delete_profile(self,profileId):
+		req_str = 'profileId:"{}"'.format(profileId)
+		delete_profile_req = self.api['createBurnProfileTypedData'](req_str)
+		return self.client.execute_query(delete_profile_req)
+		
+	def explore_profiles(self,sortCriteria='MOST_FOLLOWERS'):
+		# The sortCriteria can be any of the ProfileSortCriteria below.
+		# ProfileSortCriteria:
+		# -  CREATED_ON, MOST_FOLLOWERS, LATEST_CREATED,
+		# -  MOST_POSTS, MOST_COMMENTS, MOST_MIRRORS,
+		# -  MOST_PUBLICATION, MOST_COLLECTS
+		req_str = 'sortCriteria:{}'.format(sortCriteria)
+		explore_profiles_req = self.api['exploreProfiles'](req_str)
+		return self.client.execute_query(explore_profiles_req)
+	
+	def explore_publications(self,sortCriteria='TOP_COMMENTED',publicationTypes='[POST, COMMENT, MIRROR]',limit=10):
+		# The sortCriteria can be any of the ProfileSortCriteria below.
+		# PublicationSortCriteria:
+		# -  TOP_COMMENTED, TOP_COLLECTED, TOP_MIRRORED,
+		# -  LATEST, CURATED_PROFILES
+		req_str = 'sortCriteria:{}, publicationTypes:{}, limit:{}'.format(sortCriteria,publicationTypes,limit)
+		explore_publications_req = self.api['ExplorePublications'](req_str)
+		return self.client.execute_query(explore_publications_req)
 	
 	def follow(self,profileId,followModule=None):
 		# Returns follow typed data - this does not mean you follow the profile
@@ -268,6 +321,17 @@ class LensPy:
 		following_req = self.api['following'](req_str)
 		return self.client.execute_query(following_req)
 	
+	def get_publication(self,publicationId):
+		req_str = 'publicationId:"{}"'.format(publicationId)
+		publication_req = self.api['publication'](req_str)
+		return self.client.execute_query(publication_req)
+	
+	def get_publications(self,profileId,publicationTypes='[POST,COMMENT,MIRROR]',limit=10):
+		req_str = 'profileId:"{}",publicationTypes: {},limit: {}'.format(profileId,publicationTypes,limit)
+		publications_req = self.api['publications'](req_str)
+		# print(prettify_api_query_str(publications_req))
+		return self.client.execute_query(publications_req)
+	
 	def is_followed_by_me(self,profileId):
 		req_str = 'profileId:"{}"'.format(profileId)
 		is_followed_by_me_req = self.api['profile'](req_str)
@@ -280,19 +344,37 @@ class LensPy:
 		}}'''
 		return self.raw_graphql_query(req_str)
 	
+	def mirror(self,profileId,publicationId,referenceModule=None):
+		if referenceModule==None:
+			referenceModule = '{ followerOnlyReferenceModule: false }'
+		req_str = 'profileId:"{}",publicationId: "{}",referenceModule: {}'.format(profileId,publicationId,referenceModule)
+		mirror_req = self.api['createMirrorTypedData'](req_str)
+		# print(prettify_api_query_str(post_req))
+		return self.client.execute_query(mirror_req)
+	
 	def ping(self):
 		ping_req = self.api['ping']()
 		return self.client.execute_query(ping_req)	
-	
-	def post(self,profileId,contentURI,collectModule,referenceModule):
-		ping_req = self.api['CreatePostTypedData']()
-		return self.client.execute_query(ping_req)	
+		
+	def post(self,profileId,contentURI,collectModule=None,referenceModule=None):
+		if collectModule==None:
+			collectModule = '{ revertCollectModule: true }'
+		if referenceModule==None:
+			referenceModule = '{ followerOnlyReferenceModule: false }'
+		req_str = 'profileId:"{}",contentURI: "{}",collectModule: {},referenceModule: {}'.format(profileId,contentURI,collectModule,referenceModule)
+		post_req = self.api['createPostTypedData'](req_str)
+		# print(prettify_api_query_str(post_req))
+		return self.client.execute_query(post_req)
 	
 	def profile_feed(self, profileId, limit=50):
 		req_str = 'profileId:"{}", limit:{}'.format(profileId,limit)
 		profile_feed_req = self.api['ProfileFeed'](req_str)
 		return self.client.execute_query(profile_feed_req)
-		
+	
+	def recommended_profiles(self):
+		recommended_profiles_req = self.api['recommendedProfiles']()
+		return self.client.execute_query(recommended_profiles_req)		
+	
 	def remove_reaction(self,profileId,reaction,publicationId):
 		req_str = 'profileId:"{}",reaction: "{}",publicationId: "{}"'.format(profileId,reaction,publicationId)
 		remove_reaction_req = self.api['removeReaction'](req_str)
@@ -332,6 +414,3 @@ class LensPy:
 		req_str = 'profile: "{}"'.format(profileId)
 		unfollow_profile_req = self.api['createUnfollowTypedData'](req_str)
 		return self.client.execute_query(unfollow_profile_req)
-
-# sortcriteria = ['TOP_COMMENTED','TOP_COLLECTED','TOP_MIRRORED','LATEST','CURATED_PROFILES']
-# publicationtypes = ['POST', 'COMMENT', 'MIRROR']
