@@ -50,7 +50,7 @@ class LensPy:
 			'get_publications(profileId,publicationTypes,limit)':'get publications of a specific type from a profile',
 			'is_followed_by_me(profileId)':'returns a Bool if profileId is followed by the user',
 			'is_following(followerProfileId,followedHandle)':'returns a Bool if followerProfileId is following followedHandle',
-			'mirror(profileId,publicationId,referenceModule)':'mirror a specific publication (can specify reference module)'
+			'mirror(profileId,publicationId,referenceModule)':'mirror a specific publication (can specify reference module)',
 			'ping()':'pings the lens protocol server to check for healthy connection',
 			'profile_feed(profileId, limit)':'returns #limit items of feed for profileId',
 			'recommended_profiles()':'returns a list of recommended profiles',

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>LensPy with Flask demo</title>
+		<meta charset="utf-8" />
+		<!-- <meta name="description" content="{{description}}" /> -->
+		<!-- <link rel="shortcut icon" href="/favicon.ico" /> -->
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/font.css') }}" />
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/styles.css') }}" />
+		<!-- <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.0.2/ethers.min.js"></script> -->
+		<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+
+	</head>
+	<body>
+		<div id='topbar'>
+			<h1>Flask + LensPy</h1>
+			<div id="connect-wallet" class="hide button">
+				<p>Connect Wallet</p>
+			</div>
+		</div>
+		{% block content %}{% endblock %}
+		<script>
+			var profileId = '{{ profileId }}';
+			console.log(profileId)
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js'></script>
+		<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ethjs@0.3.4/dist/ethjs.min.js"></script> -->
+		<!-- <script src="./metamask-onboarding.bundle.js"></script> -->
+		<script type="module" src="{{url_for('static',filename='js/script.js') }}"></script>
+	</body>
+</html>
