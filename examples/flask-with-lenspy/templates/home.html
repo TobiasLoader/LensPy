@@ -2,7 +2,24 @@
 
 {% block content %}
 	<div class="container">
-		<h2 class="container-title">Hello back: "{{handle}}"</h2>
-		<h4>You have profileId: {{profileId}}</h4>
+		<!-- <h2 class="container-title">Hello back: "{{handle}}"</h2>
+		<h4>You have profileId: {{profileId}}</h4> -->
+		<div id="null-profile" class="content-section hide">
+			<h2>You don't have a Lens Profile!</h2>
+			<p>Click the button below to create a profile.</p>
+			<div id="create-profile-btn" class="button content-button">
+				<p>Create Profile!</p>
+			</div>
+		</div>
+		<div id="create-profile" class="content-section hide">
+			<h2>Create Profile</h2>
+			<form>
+				<label>Handle:</label>
+				<input id="create-profile-handle-input" placeholder="lens">
+			</form>
+			<div id="create-profile-send-btn" class="button content-button">
+				<p>Create!</p>
+			</div>
+		</div>
 	</div>
 {% endblock %}
