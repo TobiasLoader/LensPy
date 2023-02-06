@@ -9,23 +9,38 @@
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/styles.css') }}" />
 		<!-- <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.0.2/ethers.min.js"></script> -->
 		<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
-
+		<!-- <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script> -->
 	</head>
 	<body>
 		<div id='topbar'>
 			<h1>Flask + LensPy</h1>
-			<div id="connect-wallet" class="hide button">
-				<p>Connect Wallet</p>
+			<div id='topright'>
+				<div id="login" class="hide button">
+					<p>Login</p>
+				</div>
+				<div id="connect-wallet" class="hide button">
+					<p>Connect Wallet</p>
+				</div>
 			</div>
 		</div>
 		{% block content %}{% endblock %}
+		<div id="notif-wrapper" class="hide">
+			<div id="notification">
+				<div id="notif-cross">
+					<div class="notif-cross-line left"></div>
+					<div class="notif-cross-line right"></div>
+				</div>
+				<h2 id="notif-title"></h2>
+				<div id="notif-desc"></div>
+			</div>
+		</div>
 		<script>
 			var profileId = '{{ profileId }}';
 			console.log(profileId)
 		</script>
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js'></script>
+		<script type="module" src="{{url_for('static',filename='js/script.js') }}"></script>
 		<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ethjs@0.3.4/dist/ethjs.min.js"></script> -->
 		<!-- <script src="./metamask-onboarding.bundle.js"></script> -->
-		<script type="module" src="{{url_for('static',filename='js/script.js') }}"></script>
 	</body>
 </html>

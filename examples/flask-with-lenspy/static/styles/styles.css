@@ -36,6 +36,11 @@ body {
 	background: linear-gradient(45deg, rgb(20,30,20) 0%, rgb(21, 43, 21) 100%);
 }
 
+body * {
+	opacity: 1;
+	transition: opacity 300ms;
+}
+
 input {
 	background: rgb(20,30,20);
 	outline: none;
@@ -54,8 +59,8 @@ input::placeholder{
 
 .content-section {
 	/* margin:20px; */
-	opacity: 1;
-	transition: opacity 500ms;
+	/* opacity: 1;
+	transition: opacity 500ms; */
 }
 
 .button {
@@ -83,6 +88,10 @@ input::placeholder{
 	max-height: 0;
 }
 
+.hide * {
+	display: none;
+}
+
 #topbar {
 	display: flex;
 	place-content: space-between;
@@ -95,14 +104,61 @@ input::placeholder{
 	margin:20px;
 	color: rgba(255, 255, 255,0.5);
 }
-#topbar #connect-wallet {
-	margin:20px;
+
+
+#topright {
+	display: flex;
+	margin:0 10px;
 }
-#topbar #connect-wallet.connected {
+
+#topright .button {
+	margin:20px 10px;
+}
+
+#topright .button.done {
 	background: transparent;
 	border:rgba(255, 255, 255,0.1) 1px solid;
 	cursor: default;
 }
+
+#notification {
+	color: rgba(255,255,255, 0.7);
+	top: 50%;
+	left:50%;
+	position: absolute;
+	transform: translate(-50%,-50%);
+	padding: 40px;
+	height: fit-content;
+	min-width: 300px;
+	max-width: 400px;
+	background: rgba(0, 0, 0, 0.2);
+	box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 50px;
+	border: rgba(255,255,255, 0.2) 1px solid;
+	overflow: auto;
+}
+
+#notification #notif-title {
+	padding-right: 40px;
+}
+
+#notification #notif-cross {
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	top: 0;
+	right: 0;
+	margin: 20px;
+	cursor: pointer;
+}
+#notification .notif-cross-line {
+	position: absolute;
+	height: 40px;
+	width: 1px;
+	margin-left: 20px;
+	border-left: rgba(255,255,255,0.5) 1px solid;
+}
+#notification .notif-cross-line.left { transform: rotate(45deg);}
+#notification .notif-cross-line.right {	transform: rotate(315deg);}
 
 // Content Sections
 

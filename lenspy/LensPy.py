@@ -171,6 +171,16 @@ class LensPy:
 		else:
 			return list(map(lambda p: p['handle'],self.my_profiles(limit)['profiles']['items']))
 	
+	def address_profiles(self,address,limit=10):
+		# get profile from handle name gql request
+		req_str = 'ownedBy: ["{}"],limit: {}'.format(address,limit)
+		address_profiles_req = self.api['profiles'](req_str)
+		# execute query and save response
+		return self.client.execute_query(address_profiles_req)
+		
+	def address_profile_handles(self,limit=10):
+		return list(map(lambda p: p['handle'],self.address_profiles(limit)['profiles']['items']))
+	
 	## directly from api
 	
 	def authenticate(self, address, signature):
