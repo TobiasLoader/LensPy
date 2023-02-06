@@ -23,7 +23,25 @@ def home():
 def get_profile():
 	data = json.loads(request.data)
 	print(data)
-	res = lp.default_profile(data['address'])
+	res = lp.address_profile_handles(data['address'])
+	if (len(res)==0):
+		res = false
+	else:
+		res = res[0]
+	return jsonify({'lp_res':res})
+
+@app.route('/getchallenge',methods=['POST'])
+def get_challenge():
+	data = json.loads(request.data)
+	print(data)
+	res = lp.challenge(data['address'])
+	return jsonify({'lp_res':res})
+
+@app.route('/setauthenticate',methods=['POST'])
+def set_authenticate():
+	data = json.loads(request.data)
+	print(data)
+	res = lp.authenticate(data['address'],data['signature'])
 	return jsonify({'lp_res':res})
 
 @app.route('/createprofile',methods=['POST'])
