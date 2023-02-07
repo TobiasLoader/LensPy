@@ -5,10 +5,11 @@
 		<meta charset="utf-8" />
 		<!-- <meta name="description" content="{{description}}" /> -->
 		<!-- <link rel="shortcut icon" href="/favicon.ico" /> -->
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/font.css') }}" />
+		<link href="https://fonts.googleapis.com/css2?family=Inter&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/styles.css') }}" />
 		<!-- <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.0.2/ethers.min.js"></script> -->
 		<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+		<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
 		<!-- <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script> -->
 	</head>
 	<body>
@@ -23,7 +24,9 @@
 				</div>
 			</div>
 		</div>
-		{% block content %}{% endblock %}
+		<div id="center-block">
+			{% block content %}{% endblock %}
+		</div>
 		<div id="notif-wrapper" class="hide">
 			<div id="notification">
 				<div id="notif-cross">

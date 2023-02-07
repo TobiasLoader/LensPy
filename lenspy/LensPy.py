@@ -420,6 +420,11 @@ class LensPy:
 		search_publications_req = self.api['SearchPublications'](req_str)
 		return self.client.execute_query(search_publications_req)
 	
+	def set_default_profile(self,profileId):
+		req_str = 'profileId: "{}"'.format(profileId)
+		set_default_profile_req = self.api['createSetDefaultProfileTypedData'](req_str)
+		return self.client.execute_query(set_default_profile_req)
+		
 	def unfollow(self, profileId):
 		req_str = 'profile: "{}"'.format(profileId)
 		unfollow_profile_req = self.api['createUnfollowTypedData'](req_str)
