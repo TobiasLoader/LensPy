@@ -9,14 +9,27 @@
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/styles.css') }}" />
 		<!-- <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.0.2/ethers.min.js"></script> -->
 		<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
-		<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+		{# <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script> #}
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js'></script>
+		<script type="module" src="{{url_for('static',filename='js/script.js') }}"></script>
+		{% block extrajs %}{% endblock %}
 		<!-- <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script> -->
 	</head>
 	<body>
 		<div id='topbar'>
-			<h1>Flask + LensPy</h1>
+			<h1><a href="">Flask + LensPy</a></h1>
+			<!-- <div id='topcenter'>
+				<form>
+					<label>Handle</label>
+					<input id="search-profile-input" class="search-input" placeholder="Search">
+				</form>
+			</div> -->
 			<div id='topright'>
-				<div id="login" class="hide button">
+				<div id="search-wrapper" class="hide">
+					<label>Search</label>
+					<input id="search-profile-input" class="search-input" placeholder="Handle&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#128270;">
+				</div>
+				<div id="login" class="hide button done">
 					<p>Login</p>
 				</div>
 				<div id="connect-wallet" class="hide button">
@@ -25,7 +38,9 @@
 			</div>
 		</div>
 		<div id="center-block">
-			{% block content %}{% endblock %}
+			<div class="container">
+				{% block content %}{% endblock %}
+			</div>
 		</div>
 		<div id="notif-wrapper" class="hide">
 			<div id="notification">
@@ -37,12 +52,7 @@
 				<div id="notif-desc"></div>
 			</div>
 		</div>
-		<script>
-			var profileId = '{{ profileId }}';
-			console.log(profileId)
-		</script>
-		<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js'></script>
-		<script type="module" src="{{url_for('static',filename='js/script.js') }}"></script>
+		
 		<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ethjs@0.3.4/dist/ethjs.min.js"></script> -->
 		<!-- <script src="./metamask-onboarding.bundle.js"></script> -->
 	</body>
