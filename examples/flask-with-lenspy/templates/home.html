@@ -1,80 +1,69 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	<div class="container">
-		<!-- <h2 class="container-title">Hello back: "{{handle}}"</h2>
-		<h4>You have profileId: {{profileId}}</h4> -->
-		<div id="home" class="content-section hide">
-			<h2>Welcome to LensPy!</h2>
-			<p>This is a web3 social media site built on <a href="https://github.com/TobiasLoader/LensPy">LensPy</a> & <a href="https://www.lens.xyz">Lens Protocol.</a> This is a demo app that uses Python Flask on the backend.</p>
-			<p style="margin-top:10px;">Click "Connect Wallet" in the top right to get started with the app</p>
-			<p style="margin-top:10px;">TIP: make sure to have your wallet connected to the Mumbai Polygon network!</p>
-		</div>
-		<div id="view-profile" class="content-section hide">
-			<div id="profile-row">
-				<img id="profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
-				<div id="profile-name-subtitle">
-					<h2 id="profile-name"></h2>
-					<p id="profile-subtitle" class="subtitle">I like to code.</p>
-				</div>
-			</div>
-			<p>Here you will see lots of info about a profile.</p>
-			<div id="options-btn" class="button content-button">
-				<p>Profile Options</p>
+	<div id="home" class="content-section hide">
+		<h2>Welcome to LensPy!</h2>
+		<p>This is a web3 social media site built on <a href="https://github.com/TobiasLoader/LensPy">LensPy</a> & <a href="https://www.lens.xyz">Lens Protocol.</a> This is a demo app that uses Python Flask on the backend.</p>
+		<p style="margin-top:10px;">Click "Connect Wallet" in the top right to get started with the app</p>
+		<p style="margin-top:10px;">TIP: make sure to have your wallet connected to the Mumbai Polygon network!</p>
+	</div>
+	<div id="my-profile" class="content-section hide">
+		<div id="my-profile-row">
+			<img id="my-profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
+			<div id="my-profile-name-subtitle">
+				<h2 id="my-profile-name"></h2>
+				<p id="my-profile-subtitle" class="subtitle">I like to code.</p>
 			</div>
 		</div>
-		<div id="view-profile" class="content-section hide">
-			<h2></h2>
-			<p>Here you will see lots of info about a profile.</p>
-			<div id="options-btn" class="button content-button">
-				<p>Options</p>
+		<p>Here you will see lots of info about a profile.</p>
+		<div id="options-btn" class="button content-button">
+			<p>Profile Options</p>
+		</div>
+	</div>
+	<div id="options" class="content-section hide">
+		<h2>Profile Options</h2>
+		<p>These are all the options available.</p>
+		<div class="button-row">
+			<div id="create-another-profile-btn" class="button content-button">
+				<p>Create a new Profile!</p>
+			</div>
+			<div id="set-default-profile-btn" class="button content-button">
+				<p>Set default profile!</p>
+			</div>
+			<div class="back-button button content-button">
+				<p>Back</p>
 			</div>
 		</div>
-		<div id="options" class="content-section hide">
-			<h2>Profile Options</h2>
-			<p>These are all the options available.</p>
-			<div class="button-row">
-				<div id="create-another-profile-btn" class="button content-button">
-					<p>Create a new Profile!</p>
-				</div>
-				<div id="set-default-profile-btn" class="button content-button">
-					<p>Set default profile!</p>
-				</div>
-				<div class="back-button button content-button">
-					<p>Back</p>
-				</div>
+	</div>
+	<div id="create-profile" class="content-section hide">
+		<h2>Create Profile</h2>
+		<div>
+			<label>Handle:</label>
+			<input id="create-profile-handle-input" placeholder="lens">
+		</div>
+		<div class="button-row">
+			<div id="create-profile-send-btn" class="button content-button">
+				<p>Create!</p>
+			</div>
+			<div class="back-button button content-button">
+				<p>Back</p>
 			</div>
 		</div>
-		<div id="create-profile" class="content-section hide">
-			<h2>Create Profile</h2>
-			<form>
-				<label>Handle:</label>
-				<input id="create-profile-handle-input">
-			</form>
-			<div class="button-row">
-				<div id="create-profile-send-btn" class="button content-button">
-					<p>Create!</p>
-				</div>
-				<div class="back-button button content-button">
-					<p>Back</p>
-				</div>
-			</div>
+	</div>
+	<div id="set-default-profile" class="content-section hide">
+		<h2>Set default Profile</h2>
+		<p>Choose the Profile Id from the following profiles you own.</p>
+		<ul id='current-profiles'></ul>
+		<div>
+			<label>Profile Id:</label>
+			<input id="set-default-profile-input">
 		</div>
-		<div id="set-default-profile" class="content-section hide">
-			<h2>Set default Profile</h2>
-			<p>Choose the Profile Id from the following profiles you own.</p>
-			<ul id='current-profiles'></ul>
-			<form>
-				<label>Profile Id:</label>
-				<input id="set-default-profile-input">
-			</form>
-			<div class="button-row">
-				<div id="set-default-profile-send-btn" class="button content-button">
-					<p>Set Profile Id as default!</p>
-				</div>
-				<div class="back-button button content-button">
-					<p>Back</p>
-				</div>
+		<div class="button-row">
+			<div id="set-default-profile-send-btn" class="button content-button">
+				<p>Set Profile Id as default!</p>
+			</div>
+			<div class="back-button button content-button">
+				<p>Back</p>
 			</div>
 		</div>
 	</div>

@@ -1,20 +1,49 @@
 // import { ethers } from "https://cdn.ethers.io/lib/ethers-5.2.esm.min.js";
-const {ethereum} = window;
-const {Web3} = window;
-var web3 = new Web3(ethereum);
-let accounts = null;
-let connected = false;
-let address = window.ethereum.selectedAddress;
-let login = false;
-let hasprofile = false;
-let hasdefaultprofile = false;
-let myprofileidlist = [];
+
+let web3;
+let accounts;
+let connected;
+let address;
+let login;
+let hasprofile;
+let hasdefaultprofile;
+let myprofileidlist;
 
 $(document).ready(()=>{
+	
+	const {ethereum} = window;
+	const {Web3} = window;
+	
+	if (ethereum===undefined){
+		notification('Oops', ['The ethereum library didn\'t load correctly','Please refresh the page, this will most likely fix it.','If this occurs repeatedly please make an issue on the LensPy Github repo.'])
+	}
+	
+	web3 = new Web3(ethereum);
+	accounts = null;
+	connected = false;
+	address = window.ethereum.selectedAddress;
+	login = false;
+	hasprofile = false;
+	hasdefaultprofile = false;
+	myprofileidlist = [];
+	
 	initWalletConnection().then(()=>{
 		afterConnectTry();
 	});
+	
+	ethereum.on('accountsChanged', async () => {
+		address = window.ethereum.selectedAddress;
+		if (address==null) accounts = null;
+		connected = isConnected();
+		console.log(address,connected)
+		amendConnectWalletButton();
+	});
+	
+	$('h1 a').attr("href", window.location.origin);
 });
+
+// can be overridden in other js files
+var initPageLoad = ()=>{console.log('Loaded')};
 
 /// connecting wallet
 
@@ -44,7 +73,7 @@ async function initWalletConnection() {
 function amendConnectWalletButton(){
 	if (connected) {
 		console.log("user connected");
-		$('#connect-wallet p').text('Connected!');
+		$('#connect-wallet p').text('Wallet Connected!');
 		$('#connect-wallet').addClass('done');
 	} else {
 		console.log("user not connected");
@@ -55,23 +84,21 @@ function amendConnectWalletButton(){
 
 function afterConnectTry(){
 	amendConnectWalletButton();
-	clearContentSections();
+	if (isHomePage()) clearContentSections();
 	$('#connect-wallet').removeClass('hide');
+	$('#login').removeClass('hide');
+	$('#search-wrapper').removeClass('hide');
 	if (connected) {
-		getDefaultProfile();
-		$('#login').removeClass('hide');
+		if (isHomePage()) getDefaultProfile();
+		$('#login').removeClass('done');
 	} else {
-		$('#home').removeClass('hide');
+		if (isHomePage()) $('#home').removeClass('hide');
 	}
 }
 
-ethereum.on('accountsChanged', async () => {
-	address = window.ethereum.selectedAddress;
-	if (address==null) accounts = null;
-	connected = isConnected();
-	console.log(address,connected)
-	amendConnectWalletButton();
-});
+function isHomePage(){
+	return window.location.href===window.location.origin+'/';
+}
 
 /// signatures
 
@@ -117,7 +144,7 @@ function json(response) {
 	return response.json()
 }
 
-function LensPyFetch(endpoint,bodyobj,callback){
+export function LensPyFetch(endpoint,bodyobj,callback){
 	fetch(endpoint, {
 		method: 'POST',
 		headers: {
@@ -129,6 +156,12 @@ function LensPyFetch(endpoint,bodyobj,callback){
 	}).catch(function (error) {
 		console.log('Request failed', error);
 		notification('Request failed',[error]);
+	});
+}
+
+export function LensPyBroadcast(broadcastId,signature,callback){
+	LensPyFetch('/sendbroadcast',{address:address,broadcastId:broadcastId,signature:signature},(data)=>{
+		callback(data);
 	});
 }
 
@@ -165,22 +198,23 @@ function getDefaultProfile(){
 		} else {
 			hasprofile = true;
 			hasdefaultprofile = true;
-			$("#view-profile h2#profile-name").text(data['defaultProfile']['handle']);
-			$("#view-profile").removeClass('hide');
+			$("#my-profile h2#my-profile-name").text(data['defaultProfile']['handle']);
+			$("#my-profile").removeClass('hide');
 		}
 	});
 }
 
 function setDefaultProfile(profileId){
-	LensPyFetch('/setdefaultprofile',{profileId:profileId},(data)=>{
-		console.log(data);
+	LensPyFetch('/setdefaultprofile',{address:address,profileId:profileId},(data)=>{
+		// console.log(data);
 		console.log('set default profile',profileId);
-		signTypedData(data['createSetDefaultProfileTypedData']['typedData'],(result)=>{
-			let signature = result.result;
-			LensPyFetch('/sendbroadcast',{broadcastId:data['createSetDefaultProfileTypedData']['id'],signature:signature},(data)=>{
-				console.log(data);
-				if (data['broadcast']['reason']=="WRONG_WALLET_SIGNED") notification('Signature Incorrect!',['Oops the signature is incorrect. Please try again.']);
-			});
+		signTypedData(data['createSetDefaultProfileTypedData']['typedData'],(sig)=>{
+			let broadcastId = data['createSetDefaultProfileTypedData']['id'];
+			let signature = sig.result;
+			LensPyBroadcast(broadcastId,signature,(res)=>{
+				console.log(res);
+				if (res['broadcast']['reason']=="WRONG_WALLET_SIGNED") notification('Signature Incorrect!',['Oops the signature is incorrect. Please try again.']);
+			})
 		})
 	});
 }
@@ -190,7 +224,7 @@ function getAllProfiles(callback){
 }
 
 function createProfile(handle){
-	LensPyFetch('/createprofile',{handle:handle}, (data)=>{
+	LensPyFetch('/createprofile',{address:address,handle:handle}, (data)=>{
 		if (data['createProfile']['reason']=='HANDLE_TAKEN'){
 			notification('Handle Taken',['I\'m sorry that handle has already been taken.','Try another handle name.']);
 		} else {
@@ -244,6 +278,13 @@ $('#login').click(function(){
 	else if (login) notification('Already logged in!',['You have already logged in!']);
 	else loginChallengeAuthenticate();
 });
+
+$('#search-profile-input').on('keypress',function(e) {
+	if (e.which === 13) {
+		let handleSearchQuery = $(this).val();
+		window.location.href = window.location.origin+'/search-profile?handle='+handleSearchQuery;
+	}
+})
 
 $('#options-btn').click(function(){
 	clearContentSections();
@@ -301,7 +342,7 @@ $('#set-default-profile-send-btn').click(function(){
 
 /// useful functions
 
-function notification(title,txt_array){
+export function notification(title,txt_array){
 	$('#notification #notif-title').empty();
 	$('#notification #notif-desc').empty();
 	$('#notification #notif-title').text(title);

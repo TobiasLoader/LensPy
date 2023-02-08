@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div id="profile-search" class="content-section hide">
+		<h2 class="search-section-title"></h2>
+		<p>Top 10 search results below.</p>
+		<div class="search-results-area">
+			<div class='search-results'></div>
+			<div class='search-results-right'>
+				<h2>Info Here</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block extrajs %}
+	<script type="module" src="{{url_for('static',filename='js/search-profile.js')}}"></script>
+	<script>
+		let handle = '{{ handle }}';
+		let profiles = JSON.parse('{{ profiles|tojson|safe }}');
+	</script>
+{% endblock %}

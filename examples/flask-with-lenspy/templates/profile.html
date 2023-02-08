@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div id="view-profile" class="content-section hide">
+		<div id="profile-wrapper">
+			<div id="profile-left">
+				<div id="profile-row">
+					<img id="profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
+					<div id="profile-name-subtitle">
+						<div id="profile-name-id">
+							<h2 id="profile-name"></h2>
+							<p id="profile-id"></p>
+						</div>
+						<p id="profile-subtitle" class="subtitle"></p>
+					</div>
+				</div>
+				<h2 id="publications-title">Publications</h2>
+				<div id="publication-list" class="hide"></div>
+				<div id="no-publications-found" class="content-section hide">
+					<p>No publications yet.</p>
+				</div>
+			</div>
+			<div id="profile-right">
+				<div class="button-row">
+					<div id="follow-profile" class="button content-button">
+						<p>Follow</p>
+					</div>
+					<div id="unfollow-profile" class="button content-button done">
+						<p>Unfollow</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="no-profile-found" class="content-section hide">
+		<h2>Oops no profiles matched that search.</h2>
+		<p>Please try another query</p>
+	</div>
+{% endblock %}
+
+{% block extrajs %}
+	<script type="module" src="{{url_for('static',filename='js/profile.js')}}"></script>
+	<script>
+		let profile = {
+			found: ('{{ found }}'==='True')
+		}
+		if (profile.found){
+			profile.handle = '{{ handle }}'
+			profile.profileId = '{{ id }}'
+			profile.bio = "{{ bio }}"
+		}
+	</script>
+{% endblock %}

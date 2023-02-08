@@ -331,6 +331,16 @@ class LensPy:
 		following_req = self.api['following'](req_str)
 		return self.client.execute_query(following_req)
 	
+	def get_profile_by_handle(self,handle):
+		req_str = 'handle:"{}"'.format(handle)
+		profile_req = self.api['profile'](req_str)
+		return self.client.execute_query(profile_req)
+	
+	def get_profile_by_id(self,profileId):
+		req_str = 'profileId:"{}"'.format(profileId)
+		profile_req = self.api['profile'](req_str)
+		return self.client.execute_query(profile_req)
+	
 	def get_publication(self,publicationId):
 		req_str = 'publicationId:"{}"'.format(publicationId)
 		publication_req = self.api['publication'](req_str)

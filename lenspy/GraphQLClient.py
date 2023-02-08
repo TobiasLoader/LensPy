@@ -1,5 +1,5 @@
 from gql import gql, Client
-from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.requests import RequestsHTTPTransport
 from graphql.type import GraphQLSchema
 import json
 
@@ -13,14 +13,14 @@ class GQLClient:
         # if yes - then can write – do mutations (eg. post or change profile)
         # if not - then can only read from lens protocol (eg. read publications)
         # OBTAIN access token by the "login" method in LensPy.py
+        self.url = url
         if token != None:
-            transport = AIOHTTPTransport(url = url, headers = {"Authorization":f"Bearer {token}"})
+            transport = RequestsHTTPTransport(url = url, headers = {"Authorization":f"Bearer {token}"})
         else:
-            transport = AIOHTTPTransport(url = url)
+            transport = RequestsHTTPTransport(url = url)
         # sets up the GraphQL Client
         self.client = Client(transport = transport, schema = schema_str)
         
     def execute_query(self,query):
-        # print(query)
-        # return response from server of query
+        self.client.close_sync()
         return self.client.execute(gql(query))

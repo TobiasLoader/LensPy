@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div id="view-publication" class="content-section hide">
+		
+	</div>
+	<div id="no-publication-found" class="content-section hide">
+		<h2>Oops publication not found.</h2>
+		<p>Please try a different page.</p>
+	</div>
+{% endblock %}
+
+{% block extrajs %}
+	<script type="module" src="{{url_for('static',filename='js/publication.js')}}"></script>
+	<script>
+		let publication = {
+			found: false
+		}
+		// if (profile.found){
+		// 	profile.handle = '{{ handle }}'
+		// 	profile.profileId = '{{ id }}'
+		// 	profile.bio = "{{ bio }}"
+		// }
+	</script>
+{% endblock %}
