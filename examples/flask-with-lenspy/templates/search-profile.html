@@ -18,6 +18,6 @@
 	<script type="module" src="{{url_for('static',filename='js/search-profile.js')}}"></script>
 	<script>
 		let handle = '{{ handle }}';
-		let profiles = JSON.parse('{{ profiles|tojson|safe }}');
+		let profiles = JSON.parse('{{ profiles|tojson }}');
 	</script>
 {% endblock %}

@@ -45,10 +45,30 @@ def get_search_profiles():
 @app.route('/publication/<string:publicationId>',methods=['GET'])
 def get_publication(publicationId):
 	print(publicationId)
-	res = unauth_lp.get_publication(publicationId)
-	print(res)
-	return render_template('publication.html')
-
+	res = unauth_lp.get_publication(publicationId)['publication']
+	# printpretty(res)
+	if res == None:
+		pub = {'found':False,'id':None,'__typename':None,'profile':{'handle':None,'id':None,'bio':None},'metadata':{'name': None,'content':None,'media': None,'attributes': None},'createdAt':None}
+	else:
+		pub = {
+			'found': True,
+			'id': res['id'],
+			'__typename': res['__typename'],
+			'profile': {
+				'handle': res['profile']['handle'],
+				'id': res['profile']['id'],
+				'bio': res['profile']['bio'],
+			},
+			'metadata':{
+				'name': res['metadata']['name'],
+				'content': res['metadata']['content'],
+				'media': res['metadata']['media'],
+				'attributes': res['metadata']['attributes'],
+			},
+			'createdAt': res['createdAt']
+		}
+	return render_template('publication.html',found=pub['found'],id=pub['id'],__typename=pub['__typename'],profile_handle=pub['profile']['handle'],profile_id=pub['profile']['id'],profile_bio=pub['profile']['bio'],metadata_name=pub['metadata']['name'],metadata_content=pub['metadata']['content'],metadata_media=pub['metadata']['media'],metadata_attributes=pub['metadata']['attributes'],createdAt=pub['createdAt'])
+	
 # POST requests
 
 @app.route('/getchallenge',methods=['POST'])
@@ -98,5 +118,22 @@ def create_profile():
 @app.route('/getpublications',methods=['POST'])
 def send_get_publications():
 	data = json.loads(request.data)
-	res = unauth_lp.get_publications(data['profileId'])
+	res = unauth_lp.get_publications(data['profileId'],'[POST,COMMENT,MIRROR]',50)
 	return jsonify({'lp_res':res})
+
+
+def printpretty(el):
+	_printpretty(el, 0)
+
+def _printpretty(el,indent):
+	if isinstance(el, dict):
+		for k,v in el.items():
+			print('  '*indent + k+':')
+			_printpretty(v,indent+1)
+	elif isinstance(el, list):
+		print('  '*indent + '[')
+		for e in el:
+			_printpretty(e,indent+1)
+		print('  '*indent + ']')
+	else:
+		print('  '*indent + str(el))

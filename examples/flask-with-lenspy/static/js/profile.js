@@ -35,7 +35,7 @@ $(document).ready(()=>{
 					pubresultcontentrow.append('<p class="pub-result-appId subtitle">'+p['appId']+'</p>');
 					pubresult.append(pubresultcontentrow);
 					for (var attr of p['metadata']['attributes']){
-						pubresultbottomrow.append('<p class="pub-result-attr-duration subtitle">'+attr['value']+'</p>')
+						pubresultbottomrow.append('<p class="pub-result-attr subtitle">'+attr['value']+'</p>')
 					}
 					pubresult.append(pubresultbottomrow);
 					$("#publication-list").append(pubresult);

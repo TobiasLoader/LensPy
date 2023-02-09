@@ -2,7 +2,40 @@
 
 {% block content %}
 	<div id="view-publication" class="content-section hide">
-		
+		<div id="publication-wrapper">
+			<div id="publication-left">
+				<h2 id="publication-title"></h2>
+				<div id="publication-content">
+					<div id="publication-txtcontent"></div>
+					<div id="publication-imgcontent"></div>
+					<div id="publication-vidcontent"></div>
+					<div id="publication-bottomrow"></div>
+				</div>
+				<div id="no-publications-found" class="content-section hide">
+					<p>No publications yet.</p>
+				</div>
+				<div id="profile-row" class="hide">
+					<img id="profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
+					<div id="profile-name-subtitle">
+						<div id="profile-name-id">
+							<h2 id="profile-name"></h2>
+							<p id="profile-id"></p>
+						</div>
+						<p id="profile-subtitle" class="subtitle"></p>
+					</div>
+				</div>
+			</div>
+			<div id="publication-right" class="hide">
+				<div class="button-row">
+					<div id="collect-publication" class="button content-button">
+						<p>Collect</p>
+					</div>
+					<div id="mirror-publication" class="button content-button">
+						<p>Mirror</p>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 	<div id="no-publication-found" class="content-section hide">
 		<h2>Oops publication not found.</h2>
@@ -13,13 +46,26 @@
 {% block extrajs %}
 	<script type="module" src="{{url_for('static',filename='js/publication.js')}}"></script>
 	<script>
-		let publication = {
-			found: false
+		let found = Boolean('{{ found }}'=='True');
+		console.log('{{ found }}')
+		let pub = {};
+		if (found){
+			pub = {
+				'id': '{{ id }}',
+				'__typename': '{{ __typename }}',
+				'profile': {
+					'handle': '{{ profile_handle }}',
+					'id': '{{ profile_id }}',
+					'bio': '{{ profile_bio }}',
+				},
+				'metadata':{
+					'name': '{{ metadata_name }}',
+					'content': {{ metadata_content|tojson }},
+					'media': JSON.parse('{{ metadata_media|tojson }}'),
+					'attributes': JSON.parse('{{ metadata_attributes|tojson }}'),
+				},
+				'createdAt': '{{ createdAt }}'
+			}
 		}
-		// if (profile.found){
-		// 	profile.handle = '{{ handle }}'
-		// 	profile.profileId = '{{ id }}'
-		// 	profile.bio = "{{ bio }}"
-		// }
 	</script>
 {% endblock %}
