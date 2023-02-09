@@ -291,6 +291,12 @@ $('#options-btn').click(function(){
 	$("#options").removeClass('hide');
 });
 
+$('#post-btn').click(function(){
+	clearContentSections();
+	$("#post").removeClass('hide');
+});
+
+
 $('#create-profile-btn').click(function(){
 	clearContentSections();
 	$("#create-profile").removeClass('hide');
