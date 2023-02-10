@@ -89,6 +89,15 @@ img.pub-img {
 	max-height: 400px;
 }
 
+textarea {
+	background: rgba(193, 163, 238, 0.1);
+	outline: none;
+	font-family: 'Space Grotesk', sans-serif;
+	border: rgba(193, 163, 238, 0.5) 1px solid;
+	color: black;
+	padding: 10px;
+}
+
 input {
 	background: rgba(193, 163, 238, 0.1);
 	outline: none;
@@ -315,6 +324,33 @@ input.search-input :placeholder {
 #profile-search .search-results-right p {
 	text-align: justify;
 }
+
+#post .post-section {
+	padding-top: 20px;
+	margin-top: 20px;
+	border-top:rgba(0,0,0,0.1) 1px solid;
+}
+
+#post .post-section label {
+	display: none;
+}
+
+#post .post-section > div {
+	margin: 10px 0;
+}
+#post #create-post-title-input {
+	width: max(min(30%, 400px), 300px);
+}
+
+#post #create-post-content-input {
+	width: calc(100% - 20px);
+}
+
+#post #create-post-media-input {
+	width: max(min(50%, 400px), 300px);
+}
+
+
 
 /* PAGE: profile */
 

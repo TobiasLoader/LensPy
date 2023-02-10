@@ -102,6 +102,14 @@ def set_default_profile():
 	res = auth_lp[data['address']].set_default_profile(data['profileId'])
 	return jsonify({'lp_res':res})
 
+@app.route('/post',methods=['POST'])
+def post():
+	data = json.loads(request.data)
+	# you should check out chriscomrie.lens beginners guide below
+	example_content_uri = 'https://arweave.net/9FJ-xFdOr9hRxoS3lezu_ZvRP6ANk_dUpcxQrvD3L_s'
+	res = auth_lp[data['address']].post(data['profileId'],example_content_uri)
+	return jsonify({'lp_res':res})
+
 @app.route('/getallprofiles',methods=['POST'])
 def get_all_profiles():
 	data = json.loads(request.data)

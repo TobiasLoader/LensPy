@@ -4,6 +4,7 @@ let web3;
 let accounts;
 let connected;
 let address;
+let profileid;
 let login;
 let hasprofile;
 let hasdefaultprofile;
@@ -184,7 +185,6 @@ function loginChallengeAuthenticate(){
 function getDefaultProfile(){
 	clearContentSections();
 	LensPyFetch('/getdefaultprofile',{address:address},(data)=>{
-		// console.log(data);
 		if (data['defaultProfile']==null){
 			getAllProfiles((data)=>{
 				// console.log(data);
@@ -196,6 +196,7 @@ function getDefaultProfile(){
 				}
 			});
 		} else {
+			profileid = data['defaultProfile']['id'];
 			hasprofile = true;
 			hasdefaultprofile = true;
 			$("#my-profile h2#my-profile-name").text(data['defaultProfile']['handle']);
@@ -215,7 +216,21 @@ function setDefaultProfile(profileId){
 				console.log(res);
 				if (res['broadcast']['reason']=="WRONG_WALLET_SIGNED") notification('Signature Incorrect!',['Oops the signature is incorrect. Please try again.']);
 			})
-		})
+		});
+	});
+}
+
+function postPublication(title,content,media){
+	LensPyFetch('/post',{address:address,profileId:profileid,title:title,content:content,media:media},(data)=>{
+		console.log('post',data);
+		signTypedData(data['createPostTypedData']['typedData'],(sig)=>{
+			let broadcastId = data['createPostTypedData']['id'];
+			let signature = sig.result;
+			LensPyBroadcast(broadcastId,signature,(res)=>{
+				console.log(res);
+				if (res['broadcast']['reason']=="WRONG_WALLET_SIGNED") notification('Signature Incorrect!',['Oops the signature is incorrect. Please try again.']);
+			})
+		});
 	});
 }
 
@@ -296,6 +311,21 @@ $('#post-btn').click(function(){
 	$("#post").removeClass('hide');
 });
 
+$('#create-post-send-btn').click(function(){
+	if (login){
+		let title = $('#create-post-title-input').val();
+		let content = $('#create-post-content-input').val();
+		let media = $('#create-post-media-input').val();
+		if (title.length==0){
+			notification('Title field blank',['You must fill in the title field to post a publication.']);
+		} else {
+			postPublication(title,content,media);
+		}
+	} else {
+		if (connected) notification('Not logged in!',['The following action is a mutation and you need to be authenticated to perform it. You have connected your wallet but not logged in with LensPy.']);
+		else notification('Not connected your wallet or logged in!',['You need to connect your wallet and then login.']);
+	}
+});
 
 $('#create-profile-btn').click(function(){
 	clearContentSections();
