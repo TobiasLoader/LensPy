@@ -1,4 +1,5 @@
 // import { ethers } from "https://cdn.ethers.io/lib/ethers-5.2.esm.min.js";
+// import { ethers } from "./ethers";
 
 let web3;
 let accounts;
@@ -9,6 +10,8 @@ let login;
 let hasprofile;
 let hasdefaultprofile;
 let myprofileidlist;
+let signer;
+let provider;
 
 $(document).ready(()=>{
 	
@@ -20,6 +23,7 @@ $(document).ready(()=>{
 	}
 	
 	web3 = new Web3(ethereum);
+	provider = new ethers.providers.Web3Provider(window.ethereum)
 	accounts = null;
 	connected = false;
 	address = window.ethereum.selectedAddress;
@@ -54,7 +58,10 @@ function isWalletInstalled() {
 
 async function connectWallet() {
 	accounts = await ethereum.request({method: 'eth_requestAccounts'});
+	await provider.send("eth_requestAccounts", []);
 	address = ethereum.selectedAddress;
+	signer = provider.getSigner();
+	console.log(signer)
 	connected = isConnected();
 	console.log(address,connected)
 }
@@ -116,26 +123,30 @@ function signMsg(msg,callback){
 	});
 }
 
-function signTypedData(typeddata,callback){
-	let method = 'eth_signTypedData_v4';
+async function signTypedData(typeddata,callback){
 	console.log(typeddata)
-	typeddata['types']['EIP712Domain'] = [
-		{ name: 'name', type: 'string' },
-		{ name: 'version', type: 'string' },
-		{ name: 'chainId', type: 'uint256' },
-		{ name: 'verifyingContract', type: 'address' },
-	];
-	typeddata['message'] = typeddata['value'];
-	delete typeddata['value'];
-	typeddata['primaryType'] = 'EIP712Domain';
-	let msgParams = JSON.stringify(typeddata);
-	let params = [address,msgParams];
-	console.log({method:method,params:params,from:address})
-	web3.currentProvider.sendAsync({method:method,params:params,from:address}, function (err, result) {
-		console.log(err)
-		if (err) notification('Error',[err.message]);
-		else callback(result);
-	});
+	callback(await signer._signTypedData(typeddata['domain'],typeddata['types'],typeddata['value']));
+	// OLD METHOD – used domain/types/message/primaryMessage structure
+	// however Lens uses - domain/types/value structure used by ethers.js
+	
+	// let method = 'eth_signTypedData_v4';
+	// typeddata['types']['EIP712Domain'] = [
+	// 	{ name: 'name', type: 'string' },
+	// 	{ name: 'version', type: 'string' },
+	// 	{ name: 'chainId', type: 'uint256' },
+	// 	{ name: 'verifyingContract', type: 'address' },
+	// ];
+	// typeddata['message'] = typeddata['value'];
+	// delete typeddata['value'];
+	// typeddata['primaryType'] = 'EIP712Domain';
+	// let msgParams = JSON.stringify(typeddata);
+	// let params = [address,msgParams];
+	// console.log({method:method,params:params,from:address})
+	// web3.currentProvider.sendAsync({method:method,params:params,from:address}, function (err, result) {
+	// 	console.log(err)
+	// 	if (err) notification('Error',[err.message]);
+	// 	else callback(result);
+	// });
 }
 
 
@@ -162,7 +173,15 @@ export function LensPyFetch(endpoint,bodyobj,callback){
 
 export function LensPyBroadcast(broadcastId,signature,callback){
 	LensPyFetch('/sendbroadcast',{address:address,broadcastId:broadcastId,signature:signature},(data)=>{
-		callback(data);
+		let reason = data['broadcast']['reason'];
+		if (reason=="REJECTED") notification('Signature [REJECTED]!',['Oops the typed data signature is incorrect, it was rejected.','Please try again.']);
+		else if (reason=="EXPIRED") notification('Signature [EXPIRED]!',['Oops the signature is incorrect, the data has expired.','Please try again.']);
+		else if (reason=="WRONG_WALLET_SIGNED") notification('Signature [WRONG_WALLET_SIGNED]!',['Oops the signature is incorrect, the wrong wallet signed or the data was formatted incorrectly.','Please try again.']);
+		else if (reason=="NOT_ALLOWED") notification('Signature [NOT_ALLOWED]!',['Oops the signature is incorrect, the signature was not allowed.','Please try again.']);
+		else {
+			notification('🎉 Success!',['The typed data from your request was correctly signed and it has been "Broadcast" by Lens Protocol to the chain.']);
+			callback(data);
+		}
 	});
 }
 
@@ -207,28 +226,25 @@ function getDefaultProfile(){
 
 function setDefaultProfile(profileId){
 	LensPyFetch('/setdefaultprofile',{address:address,profileId:profileId},(data)=>{
-		// console.log(data);
-		console.log('set default profile',profileId);
 		signTypedData(data['createSetDefaultProfileTypedData']['typedData'],(sig)=>{
 			let broadcastId = data['createSetDefaultProfileTypedData']['id'];
-			let signature = sig.result;
+			let signature = sig;
 			LensPyBroadcast(broadcastId,signature,(res)=>{
 				console.log(res);
-				if (res['broadcast']['reason']=="WRONG_WALLET_SIGNED") notification('Signature Incorrect!',['Oops the signature is incorrect. Please try again.']);
-			})
+			});
 		});
 	});
 }
 
-function postPublication(title,content,media){
-	LensPyFetch('/post',{address:address,profileId:profileid,title:title,content:content,media:media},(data)=>{
-		console.log('post',data);
+function postPublication(contentURI=null,collectModule=null,referenceModule=null){
+	// you should check out chriscomrie.lens beginners guide below
+	if (contentURI==null) contentURI = 'https://arweave.net/9FJ-xFdOr9hRxoS3lezu_ZvRP6ANk_dUpcxQrvD3L_s';
+	LensPyFetch('/post',{address:address,profileId:profileid,contentURI:contentURI,collectModule:collectModule,referenceModule:referenceModule},(data)=>{
 		signTypedData(data['createPostTypedData']['typedData'],(sig)=>{
 			let broadcastId = data['createPostTypedData']['id'];
-			let signature = sig.result;
+			let signature = sig;
 			LensPyBroadcast(broadcastId,signature,(res)=>{
 				console.log(res);
-				if (res['broadcast']['reason']=="WRONG_WALLET_SIGNED") notification('Signature Incorrect!',['Oops the signature is incorrect. Please try again.']);
 			})
 		});
 	});
@@ -313,14 +329,13 @@ $('#post-btn').click(function(){
 
 $('#create-post-send-btn').click(function(){
 	if (login){
-		let title = $('#create-post-title-input').val();
-		let content = $('#create-post-content-input').val();
-		let media = $('#create-post-media-input').val();
-		if (title.length==0){
-			notification('Title field blank',['You must fill in the title field to post a publication.']);
-		} else {
-			postPublication(title,content,media);
-		}
+		let contentURI = $('#create-post-contentURI-input').val();
+		let collectModule = $('#create-post-collectmodule-input').val();
+		let referenceModule = $('#create-post-referencemodule-input').val();
+		if (contentURI.length==0) notification('Content URI field blank',['The content URI:','ipfs://QmPogtffEF3oAbKERsoR4Ky8aTvLgBF5totp5AuF8YN6vl','is being used instead.','* taken from lens docs']);
+		// not passing collect/reference modules yet.
+		// let the defaults be used as defined in lenspy
+		postPublication(contentURI);
 	} else {
 		if (connected) notification('Not logged in!',['The following action is a mutation and you need to be authenticated to perform it. You have connected your wallet but not logged in with LensPy.']);
 		else notification('Not connected your wallet or logged in!',['You need to connect your wallet and then login.']);

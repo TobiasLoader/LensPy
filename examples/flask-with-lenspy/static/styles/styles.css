@@ -338,15 +338,15 @@ input.search-input :placeholder {
 #post .post-section > div {
 	margin: 10px 0;
 }
-#post #create-post-title-input {
-	width: max(min(30%, 400px), 300px);
-}
 
-#post #create-post-content-input {
+
+#post #create-post-contentURI-input {
 	width: calc(100% - 20px);
 }
-
-#post #create-post-media-input {
+#post #create-post-collectmodule-input {
+	width: max(min(50%, 400px), 300px);
+}
+#post #create-post-referencemodule-input {
 	width: max(min(50%, 400px), 300px);
 }
 
