@@ -102,6 +102,12 @@ def set_default_profile():
 	res = auth_lp[data['address']].set_default_profile(data['profileId'])
 	return jsonify({'lp_res':res})
 
+@app.route('/post',methods=['POST'])
+def post():
+	data = json.loads(request.data)
+	res = auth_lp[data['address']].post(data['profileId'],data['contentURI'],data['collectModule'],data['referenceModule'])
+	return jsonify({'lp_res':res})
+
 @app.route('/getallprofiles',methods=['POST'])
 def get_all_profiles():
 	data = json.loads(request.data)

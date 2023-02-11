@@ -7,24 +7,6 @@
 		<p style="margin-top:10px;">Click "Connect Wallet" in the top right to get started with the app</p>
 		<p style="margin-top:10px;">TIP: make sure to have your wallet connected to the Mumbai Polygon network!</p>
 	</div>
-	<div id="my-profile" class="content-section hide">
-		<div id="my-profile-row">
-			<img id="my-profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
-			<div id="my-profile-name-subtitle">
-				<h2 id="my-profile-name"></h2>
-				<p id="my-profile-subtitle" class="subtitle">I like to code.</p>
-			</div>
-		</div>
-		<p>Here you will see lots of info about your profile.</p>
-		<div class="button-row">
-			<div id="options-btn" class="button content-button">
-				<p>Profile Options</p>
-			</div>
-			<div id="post-btn" class="button content-button">
-				<p>Create Post</p>
-			</div>
-		</div>
-	</div>
 	<div id="options" class="content-section hide">
 		<h2>Profile Options</h2>
 		<p>These are all the options available.</p>
@@ -75,9 +57,44 @@
 	<div id="post" class="content-section hide">
 		<h2>Post</h2>
 		<p>Here you will be able to create a post.</p>
+		<div class="post-section">
+			<div>
+				<label>Content:</label>
+				<textarea id="create-post-contentURI-input" placeholder="Content URI (eg. ipfs or arweave)"></textarea>
+			</div>
+			<div>
+				<label>Collect Module:</label>
+				<input id="create-post-collectmodule-input" placeholder="collectModule">
+			</div>
+			<div>
+				<label>Reference Module:</label>
+				<input id="create-post-referencemodule-input" placeholder="referenceModule">
+			</div>
+		</div>
 		<div class="button-row">
+			<div id="create-post-send-btn"  class="button content-button">
+				<p>Post</p>
+			</div>
 			<div class="back-button button content-button">
 				<p>Back</p>
+			</div>
+		</div>
+	</div>
+	<div id="my-profile" class="content-section hide">
+		<div id="my-profile-row">
+			<img id="my-profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
+			<div id="my-profile-name-subtitle">
+				<h2 id="my-profile-name"></h2>
+				<p id="my-profile-subtitle" class="subtitle">I like to code.</p>
+			</div>
+		</div>
+		<p>Here you will see lots of info about your profile.</p>
+		<div class="button-row">
+			<div id="options-btn" class="button content-button">
+				<p>Profile Options</p>
+			</div>
+			<div id="post-btn" class="button content-button">
+				<p>Create Post</p>
 			</div>
 		</div>
 	</div>

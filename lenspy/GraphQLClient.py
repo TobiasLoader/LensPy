@@ -20,7 +20,16 @@ class GQLClient:
             transport = RequestsHTTPTransport(url = url)
         # sets up the GraphQL Client
         self.client = Client(transport = transport, schema = schema_str)
+        self.executing_query = False
+        # self.execution_queue = []
         
     def execute_query(self,query):
-        self.client.close_sync()
-        return self.client.execute(gql(query))
+        if not self.executing_query:
+            self.executing_query = True
+            # self.client.close_sync()
+            result = self.client.execute(gql(query))
+            self.executing_query = False
+            return result
+        else:
+            # self.execution_queue.prepend(query)
+            return 'Sorry, query already executing'
