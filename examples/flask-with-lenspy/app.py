@@ -17,11 +17,13 @@ def home():
 
 @app.route("/<string:handle>")
 def profile(handle):
+	print('req profile',handle)
 	res = unauth_lp.get_profile_by_handle(handle)['profile']
 	if res == None:
 		return render_template('profile.html',found=False)
 	else:
 		bio = res['bio']
+		print(res['id'])
 		if bio:
 			bio = res['bio'].replace('\n','')
 		return render_template('profile.html',found=True,handle=handle,id=res['id'],bio=bio)

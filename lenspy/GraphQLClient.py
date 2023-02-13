@@ -2,6 +2,7 @@ from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 from graphql.type import GraphQLSchema
 import json
+import time
 
 with open('lenspy/lens-api.schema.graphql','r', encoding = 'utf-16') as f:
     schema_str = f.read()
@@ -21,15 +22,20 @@ class GQLClient:
         # sets up the GraphQL Client
         self.client = Client(transport = transport, schema = schema_str)
         self.executing_query = False
-        # self.execution_queue = []
-        
+    
     def execute_query(self,query):
         if not self.executing_query:
+            print('EXECUTING QUERY',query[0:20])
             self.executing_query = True
-            # self.client.close_sync()
             result = self.client.execute(gql(query))
             self.executing_query = False
             return result
         else:
-            # self.execution_queue.prepend(query)
-            return 'Sorry, query already executing'
+            start_wait_time = time.time()
+            print('WAIT QUERY',query[0:20])
+            while True:
+                if not self.executing_query:
+                    return self.execute_query(query)
+                if time.time()-start_wait_time>1:
+                    print('Timeout – time elapsed waiting for previous graphql call to execute')
+                    return None
