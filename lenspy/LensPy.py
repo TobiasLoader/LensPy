@@ -1,9 +1,11 @@
 from lenspy.GraphQLClient import GQLClient
 from lenspy.parse_graphql import parse_callable_api_from_graphql
-from lenspy.helpers import prettify_api_query_str, sign_typed_data, null_param
+from lenspy.helpers import prettify_api_query_str, null_param, fix_abi_encode
 from web3.auto import w3
-from eth_account.messages import encode_defunct, encode_structured_data
+import eth_account.messages
 import json
+import eth_utils
+from eth_abi import encode
 
 ## PROFILE
 # sortCriteria = ['CREATED_ON','MOST_FOLLOWERS','LATEST_CREATED','MOST_POSTS','MOST_COMMENTS','MOST_MIRRORS','MOST_PUBLICATION','MOST_COLLECTS']
@@ -140,7 +142,7 @@ class LensPy:
 		challenge_txt = challenge_res['challenge']['text']
 		# use encode_defunct to create signable message
 		# (replace with encode_intended_validator/encode_structured_data sometime)
-		signable_message = encode_defunct(text = challenge_txt)
+		signable_message = eth_account.messages.encode_defunct(text = challenge_txt)
 		# using w3 library to sign the message
 		signed_message = w3.eth.account.sign_message(signable_message,private_key = wallet_private_address)
 		# authenticate gql query
@@ -180,6 +182,11 @@ class LensPy:
 		
 	def address_profile_handles(self,limit=10):
 		return list(map(lambda p: p['handle'],self.address_profiles(limit)['profiles']['items']))
+	
+		
+	def following_by_id(self,address,limit=10):
+		following = self.following(address,limit)
+		return list(map(lambda p: p['profile']['id'],following['following']['items']))
 	
 	## directly from api
 	
@@ -260,9 +267,6 @@ class LensPy:
 		return self.client.execute_query(follow_profile_req)
 	
 	def follow_broadcast(self,private_key,profileId,followModule=None):
-		## Note not working atm: getting {'broadcast': {'reason': 'WRONG_WALLET_SIGNED'}}
-		# This is because the signature is not the same - see reasons below
-
 		req_str = 'follow:[{profile: "'+profileId+'",followModule: '+null_param(followModule)+'}]'
 		print(req_str)
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
@@ -270,15 +274,17 @@ class LensPy:
 		broadcast_id = follow_profile_res['createFollowTypedData']['id']
 		typed_data = follow_profile_res['createFollowTypedData']['typedData']
 		
-		# TODO implement sign_typed_data in helpers.py, then use:
+		#### LENS designed the broadcast typed data response as (domain, types, value)
+		## This follows ethers.js implementation of 'signTypedData'.
+		## However Python doesn't have an implementation of this form, instead requiring typed data of the form (domain, types, primaryType, message) as implemented by metamask in js and others.
+		## Therefore we require modification of the typed data response so that it is in a compatible format to sign. This requires adding the EIP712Domain domain to types, indicating the primaryType and setting message to be the value typed data. Additionally, on the typed data from Lens, the eth_account method 'encode_structured_data' throws an error when it uses 'eth_abi' to encode certain values in the typed data (in this case: the profileIds and datas). The function 'fix_abi_encode' in LensPy helpers.py uses 'eth_utils' to convert the values to a type that eth_abi can encode.
 		
-		# signature = sign_typed_data(typed_data,private_key)
-		# return self.broadcast(broadcast_id,signature.hex())
+		# print('old typed data', typed_data)
 		
-		## ------ PREVIOUSLY ------
+		##### START MODIFICATION OF TYPED DATA
 		
-		# Issues below because encode_structured_data and sign_typed_data
-		# don't seem to behave in the same way as JS eth_signTypedData (which Lens was designed for)
+		typed_data['value']['profileIds'] = fix_abi_encode(typed_data['value']['profileIds'],'int')
+		typed_data['value']['datas'] = fix_abi_encode(typed_data['value']['datas'],'bytes')
 		
 		# typed data response from lens doesn't contain EIP712Domain types field
 		typed_data['types']['EIP712Domain'] = [
@@ -287,39 +293,27 @@ class LensPy:
 			{"name":"chainId","type":"uint256"},
 			{"name":"verifyingContract","type":"address"}
 		]
-		# required base types to pass hashing.py Depth First Search of types without throwing TypeErrors
-		typed_data['types']['uint'] = []
-		typed_data['types']['bytes'] = []
-# 		# typed data response from lens doesn't contain primaryType
+		
+		# typed data response from lens doesn't contain primaryType
 		typed_data['primaryType'] = 'FollowWithSig'
-# 		# typed data response from lens doesn't contain message (written as value?)
+		
+		# typed data response from lens doesn't contain message (written as value instead)
 		typed_data['message'] = typed_data['value']
-		# print(typed_data)
-
-# 		# encode_structured_data erroring on the types of profileIds and datas - so change to string[]
-# 		typed_data['types']['FollowWithSig'][0]['type'] = 'string[]'
-# 		typed_data['types']['FollowWithSig'][1]['type'] = 'string[]'
-# 		del typed_data['value']
-# 		
-# 		# BUT now if we sign the above typed_data of course it will be different!
-# 		
-# 		# for (a,b) in typed_data.items():
-# 		# 	print(a)
-# 		# 	print(b)
-# 		
-		encoded_data = encode_structured_data(primitive = typed_data)
+		del typed_data['value']
+		
+		# print('new typed data', typed_data)
+		
+		##### END MODIFICATION OF TYPED DATA
+		
+		## encode the typed data
+		encoded_data = eth_account.messages.encode_structured_data(primitive = typed_data)
 		# print(encoded_data)
-# 		
-# 		## Sign either using sign_message (uses private address)
-		signed_type_data = w3.eth.account.sign_message(encoded_data,private_key)
-# 		
-# 		## Or using sign_typed_data (not meant ot use with encode_structured_data actually, one for local the other for on node)
-		# signed_type_data = w3.eth.sign_typed_data(self.pub,json.dumps(encoded_data))
-# 		
+		
+		## Sign either using sign_message (uses private address)
+		signed_type_data = w3.eth.account.sign_message(encoded_data,private_key).signature.hex()
 		# print(signed_type_data)
-# 
-		return self.broadcast(broadcast_id,signed_type_data.signature.hex())
-		# return '"follow_broadcast" function needs fixing.'
+		
+		return self.broadcast(broadcast_id,signed_type_data)
 	
 	def followers(self,profileId,limit=10):
 		req_str = 'profileId:"{}", limit:"{}"'.format(profileId,limit)

@@ -23,16 +23,17 @@ class GQLClient:
         self.client = Client(transport = transport, schema = schema_str)
         self.executing_query = False
     
+    # TODO: rewrite execute query – maybe add async queue if client is in use already?
     def execute_query(self,query):
         if not self.executing_query:
-            print('EXECUTING QUERY',query[0:20])
+            # print('EXECUTING QUERY',query[0:20])
             self.executing_query = True
             result = self.client.execute(gql(query))
             self.executing_query = False
             return result
         else:
             start_wait_time = time.time()
-            print('WAIT QUERY',query[0:20])
+            # print('WAIT QUERY',query[0:20])
             while True:
                 if not self.executing_query:
                     return self.execute_query(query)
