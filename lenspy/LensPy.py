@@ -263,12 +263,12 @@ class LensPy:
 		# Returns follow typed data - this does not mean you follow the profile
 		# You must then Broadcast this typed data or use a dispatcher
 		req_str = 'follow:[{profile: "'+profileId+'",followModule: '+null_param(followModule)+'}]'
+		print(req_str)
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		return self.client.execute_query(follow_profile_req)
 	
 	def follow_broadcast(self,private_key,profileId,followModule=None):
 		req_str = 'follow:[{profile: "'+profileId+'",followModule: '+null_param(followModule)+'}]'
-		print(req_str)
 		follow_profile_req = self.api['createFollowTypedData'](req_str)
 		follow_profile_res = self.client.execute_query(follow_profile_req)
 		broadcast_id = follow_profile_res['createFollowTypedData']['id']
@@ -279,7 +279,7 @@ class LensPy:
 		## However Python doesn't have an implementation of this form, instead requiring typed data of the form (domain, types, primaryType, message) as implemented by metamask in js and others.
 		## Therefore we require modification of the typed data response so that it is in a compatible format to sign. This requires adding the EIP712Domain domain to types, indicating the primaryType and setting message to be the value typed data. Additionally, on the typed data from Lens, the eth_account method 'encode_structured_data' throws an error when it uses 'eth_abi' to encode certain values in the typed data (in this case: the profileIds and datas). The function 'fix_abi_encode' in LensPy helpers.py uses 'eth_utils' to convert the values to a type that eth_abi can encode.
 		
-		# print('old typed data', typed_data)
+		# print('original typed data', typed_data)
 		
 		##### START MODIFICATION OF TYPED DATA
 		

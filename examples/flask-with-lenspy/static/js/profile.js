@@ -1,4 +1,4 @@
-import * as script from "./script.js";
+import * as main from "./main.js";
 
 $(document).ready(()=>{
 	if (profile.found){
@@ -6,7 +6,7 @@ $(document).ready(()=>{
 		$("#view-profile p#profile-id").html(profile.profileId);
 		$("#view-profile #profile-subtitle").html(profile.bio);
 		$("#view-profile").removeClass('hide');
-		script.LensPyFetch('/getpublications',{profileId:profile.profileId},(data)=>{
+		main.LensPyFetch('/getpublications',{profileId:profile.profileId},(data)=>{
 			let publications = data['publications']['items'];
 			console.log(publications)
 			if (publications.length>0){
@@ -51,9 +51,17 @@ $(document).ready(()=>{
 });
 
 $('#follow-profile').click(()=>{
-	script.notification('Follow', ['TODO: follow this profile']);
+	main.requiresLogin(()=>{
+		main.LensPyFetch('/getfollow',{address:main.ls.address,profileId:profile.profileId},(data)=>{
+			main.LensPySignThenBroadcast(data['createFollowTypedData']);
+		});
+	})
 });
 
 $('#unfollow-profile').click(()=>{
-	script.notification('Unfollow', ['TODO: unfollow this profile']);
+	main.requiresLogin(()=>{
+		main.LensPyFetch('/getunfollow',{address:main.ls.address,profileId:profile.profileId},(data)=>{
+			main.LensPySignThenBroadcast(data['createUnfollowTypedData']);
+		});
+	})
 });
