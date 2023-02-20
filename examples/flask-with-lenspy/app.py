@@ -129,6 +129,24 @@ def send_get_publications():
 	res = unauth_lp.get_publications(data['profileId'],'[POST,COMMENT,MIRROR]',50)
 	return jsonify({'lp_res':res})
 
+@app.route('/getfollow',methods=['POST'])
+def get_follow():
+	data = json.loads(request.data)
+	res = auth_lp[data['address']].follow(data['profileId'])
+	return jsonify({'lp_res':res})
+
+@app.route('/getunfollow',methods=['POST'])
+def get_unfollow():
+	data = json.loads(request.data)
+	res = auth_lp[data['address']].unfollow(data['profileId'])
+	return jsonify({'lp_res':res})
+
+@app.route('/getfollowing',methods=['POST'])
+def get_following():
+	data = json.loads(request.data)
+	res = unauth_lp.following(data['address'])['following']['items']
+	res = list(map(lambda p: {'handle':p['profile']['handle'],'id':p['profile']['id']},res))
+	return jsonify({'lp_res':res})
 
 def printpretty(el):
 	_printpretty(el, 0)

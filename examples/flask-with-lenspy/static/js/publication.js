@@ -1,4 +1,4 @@
-import * as script from "./script.js";
+import * as main from "./main.js";
 
 $(document).ready(()=>{
 	if (found){
@@ -30,9 +30,9 @@ $(document).ready(()=>{
 });
 
 $('#collect-publication').click(()=>{
-	script.notification('Collect', ['TODO: collect this publication']);
+	main.notification('Collect', ['TODO: collect this publication']);
 });
 
 $('#mirror-publication').click(()=>{
-	script.notification('Mirror', ['TODO: mirror this publication']);
+	main.notification('Mirror', ['TODO: mirror this publication']);
 });

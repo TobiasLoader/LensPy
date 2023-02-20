@@ -279,6 +279,10 @@ input.search-input :placeholder {
 	flex-direction: column;
 	justify-content: center;
 }
+#my-profile #my-profile-name-id > * {
+	display: inline-block;
+	margin-right: 5px;
+}
 #my-profile #my-profile-name {
 	margin-bottom:0;
 }
@@ -405,6 +409,11 @@ input.search-input :placeholder {
 	padding: 10px 0;
 	border-bottom: rgba(0,0,0,0.1) 1px solid;
 }
+
+#view-profile .pub-result:last-child {
+	border: none;
+}
+
 
 #view-profile .pub-result-toprow {
 	display: flex;

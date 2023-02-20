@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'main.html' %}
 
 {% block content %}
 	<div id="home" class="content-section hide">
@@ -80,11 +80,24 @@
 			</div>
 		</div>
 	</div>
+	<div id="following" class="content-section hide">
+		<h2>Following</h2>
+		<p>The profiles you are following</p>
+		<ul class="following-section"></ul>
+		<div class="button-row">
+			<div class="back-button button content-button">
+				<p>Back</p>
+			</div>
+		</div>
+	</div>
 	<div id="my-profile" class="content-section hide">
 		<div id="my-profile-row">
 			<img id="my-profile-img" alt="profile-img" src="{{ url_for('static',filename='assets/img/profile_img.svg') }}">
 			<div id="my-profile-name-subtitle">
-				<h2 id="my-profile-name"></h2>
+				<div id="my-profile-name-id">
+					<h2 id="my-profile-name"></h2>
+					<p id="my-profile-id"></p>
+				</div>
 				<p id="my-profile-subtitle" class="subtitle">I like to code.</p>
 			</div>
 		</div>
@@ -96,6 +109,13 @@
 			<div id="post-btn" class="button content-button">
 				<p>Create Post</p>
 			</div>
+			<div id="following-btn" class="button content-button">
+				<p>Following</p>
+			</div>
 		</div>
 	</div>
+{% endblock %}
+
+{% block extrajs %}
+	<script type="module" src="{{url_for('static',filename='js/home.js')}}"></script>
 {% endblock %}
