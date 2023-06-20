@@ -6,7 +6,9 @@ Check out documentation on [readthedocs](https://lens-py.readthedocs.io/en/lates
 
 ---
 
-_-- WORK IN PROGRESS -- expected completion by Feb/March 2023_
+_-- WORK IN PROGRESS -- expected completion by July 2023_
+
+NOTE: uni got in the way. I'm doing exams at the moment, will finish the final parts of the project at the start of summer
 
 ---
 
