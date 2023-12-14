@@ -1,22 +1,8 @@
 # LensPy
 
-Python library for the Lens Protocol.
+Python library for the Lens Protocol – *Making Lens Protocol easy to use and accessible to Python developers.*
 
 Check out documentation on [readthedocs](https://lens-py.readthedocs.io/en/latest/#).
-
----
-
-_-- WORK IN PROGRESS -- expected completion by July 2023_
-
-NOTE: uni got in the way. I'm doing exams at the moment, will finish the final parts of the project at the start of summer
-
----
-
-### Aims for this project:
-
--   Make Lens Protocol easy to use and accessible to Python developers.
--   Build demo projects with common frameworks like Flask, Django etc...
--   Write good documentation for LensPy
 
 ![Lens Py logo](https://github.com/TobiasLoader/LensPy/blob/main/docs/source/_static/img/lenspylogo.png)
 
